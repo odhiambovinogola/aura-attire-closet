@@ -1,0 +1,183 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { supabase } from "../../lib/supabase";
+import { formatKES } from "../../lib/format";
+import { colourToHex } from "../../lib/colours";
+import { productImageUrl } from "../../lib/images";
+import type { Product } from "../../lib/types";
+
+const { slug } = Astro.params;
+
+let product: Product | null = null;
+let loadError: string | null = null;
+
+try {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, product_images(*)")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle();
+  if (error) throw error;
+  product = data;
+} catch (err) {
+  loadError = err instanceof Error ? err.message : "Could not load this product.";
+}
+
+if (!product && !loadError) {
+  return Astro.redirect("/shop");
+}
+
+const images = product?.product_images?.slice().sort((a, b) => a.sort_order - b.sort_order) ?? [];
+const primaryImage = images.find((img) => img.is_primary) ?? images[0];
+---
+
+<BaseLayout title={product?.name ?? "Product"}>
+  <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+    {loadError && (
+      <p class="rounded-lg bg-ink/5 px-4 py-6 text-sm text-ink/70">
+        The catalogue isn't connected yet ({loadError}).
+      </p>
+    )}
+
+    {product && (
+      <div class="grid gap-8 sm:grid-cols-2">
+        <div>
+          <div class="aspect-[3/4] overflow-hidden rounded-lg bg-ink/5">
+            {primaryImage ? (
+              <img
+                src={productImageUrl(primaryImage.storage_path)}
+                alt={primaryImage.alt ?? product.name}
+                class="h-full w-full object-cover"
+              />
+            ) : (
+              <div class="flex h-full w-full items-center justify-center text-sm text-ink/40">
+                {product.name}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <h1 class="font-[family-name:var(--font-display)] text-2xl">{product.name}</h1>
+          <p class="mt-2 text-lg">{formatKES(product.price_kes)}</p>
+
+          {product.description ? (
+            <p class="mt-4 text-sm text-ink/70">{product.description}</p>
+          ) : (
+            <p class="mt-4 text-sm italic text-ink/40">Description coming soon.</p>
+          )}
+
+          {product.colours.length > 0 && (
+            <div class="mt-6">
+              <p class="text-sm font-medium">Colour</p>
+              <div id="colour-chips" class="mt-2 flex flex-wrap gap-2">
+                {product.colours.map((colour, i) => (
+                  <button
+                    type="button"
+                    data-colour={colour}
+                    aria-pressed={i === 0}
+                    class="colour-chip flex items-center gap-2 rounded-full border border-ink/15 px-3 py-1.5 text-sm aria-pressed:border-ink aria-pressed:bg-ink/5"
+                  >
+                    <span class="h-3.5 w-3.5 rounded-full border border-ink/15" style={`background-color: ${colourToHex(colour)}`} />
+                    {colour}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {product.sizes.length > 0 ? (
+            <div class="mt-6">
+              <p class="text-sm font-medium">Size</p>
+              <div id="size-chips" class="mt-2 flex flex-wrap gap-2">
+                {product.sizes.map((size, i) => (
+                  <button
+                    type="button"
+                    data-size={size}
+                    aria-pressed={i === 0}
+                    class="size-chip rounded-full border border-ink/15 px-3.5 py-1.5 text-sm aria-pressed:border-ink aria-pressed:bg-ink/5"
+                  >
+                    {size}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p class="mt-6 text-sm italic text-ink/40">Sizes coming soon — free size unless noted.</p>
+          )}
+
+          <div class="mt-6">
+            <p class="text-sm font-medium">Quantity</p>
+            <div class="mt-2 flex items-center gap-3">
+              <button type="button" id="qty-decrease" class="h-9 w-9 rounded-full border border-ink/15 text-lg leading-none">&minus;</button>
+              <span id="qty-value" class="w-6 text-center text-sm">1</span>
+              <button type="button" id="qty-increase" class="h-9 w-9 rounded-full border border-ink/15 text-lg leading-none">+</button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            id="order-whatsapp"
+            data-product-name={product.name}
+            data-price-kes={product.price_kes}
+            class="mt-8 w-full rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white hover:opacity-90 sm:sticky sm:bottom-4"
+          >
+            Order via WhatsApp
+          </button>
+        </div>
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  import { buildOrderWhatsAppUrl } from "../../lib/whatsapp";
+
+  const colourChipsEl = document.getElementById("colour-chips");
+  const sizeChipsEl = document.getElementById("size-chips");
+  const qtyValueEl = document.getElementById("qty-value");
+  const orderButton = document.getElementById("order-whatsapp") as HTMLButtonElement | null;
+
+  let quantity = 1;
+
+  function setActiveChip(container: HTMLElement, selected: HTMLElement) {
+    container.querySelectorAll<HTMLElement>("button").forEach((btn) => {
+      btn.setAttribute("aria-pressed", String(btn === selected));
+    });
+  }
+
+  colourChipsEl?.addEventListener("click", (event) => {
+    const target = (event.target as HTMLElement).closest<HTMLElement>(".colour-chip");
+    if (target) setActiveChip(colourChipsEl, target);
+  });
+
+  sizeChipsEl?.addEventListener("click", (event) => {
+    const target = (event.target as HTMLElement).closest<HTMLElement>(".size-chip");
+    if (target) setActiveChip(sizeChipsEl, target);
+  });
+
+  document.getElementById("qty-decrease")?.addEventListener("click", () => {
+    quantity = Math.max(1, quantity - 1);
+    if (qtyValueEl) qtyValueEl.textContent = String(quantity);
+  });
+
+  document.getElementById("qty-increase")?.addEventListener("click", () => {
+    quantity += 1;
+    if (qtyValueEl) qtyValueEl.textContent = String(quantity);
+  });
+
+  orderButton?.addEventListener("click", () => {
+    const whatsappNumber = import.meta.env.PUBLIC_WHATSAPP_NUMBER ?? "";
+    const name = orderButton.dataset.productName ?? "";
+    const priceKes = Number(orderButton.dataset.priceKes ?? 0);
+    const colour = colourChipsEl?.querySelector<HTMLElement>('[aria-pressed="true"]')?.dataset.colour ?? "Any";
+    const size = sizeChipsEl?.querySelector<HTMLElement>('[aria-pressed="true"]')?.dataset.size;
+
+    const url = buildOrderWhatsAppUrl(
+      [{ name, colour, size, quantity, priceKes }],
+      whatsappNumber,
+    );
+    window.open(url, "_blank", "noopener,noreferrer");
+  });
+</script>

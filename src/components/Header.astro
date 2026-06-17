@@ -1,0 +1,54 @@
+---
+const navItems = [
+  { label: "Home", href: "/" },
+  { label: "Shop", href: "/shop" },
+];
+---
+
+<header class="border-b border-ink/10 bg-cream">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+    <a href="/" class="font-[family-name:var(--font-display)] text-xl tracking-wide">
+      Aura Attire Closet
+    </a>
+
+    <nav class="hidden gap-8 sm:flex">
+      {navItems.map((item) => (
+        <a href={item.href} class="text-sm font-medium tracking-wide hover:text-gold">
+          {item.label}
+        </a>
+      ))}
+    </nav>
+
+    <button
+      id="nav-toggle"
+      type="button"
+      aria-label="Open menu"
+      aria-expanded="false"
+      class="flex h-10 w-10 items-center justify-center sm:hidden"
+    >
+      <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" />
+      </svg>
+    </button>
+  </div>
+
+  <nav id="mobile-nav" class="hidden flex-col gap-1 border-t border-ink/10 px-4 py-2 sm:hidden">
+    {navItems.map((item) => (
+      <a href={item.href} class="py-2 text-sm font-medium tracking-wide hover:text-gold">
+        {item.label}
+      </a>
+    ))}
+  </nav>
+</header>
+
+<script>
+  const toggle = document.getElementById("nav-toggle");
+  const menu = document.getElementById("mobile-nav");
+
+  toggle?.addEventListener("click", () => {
+    const isOpen = menu?.classList.contains("flex");
+    menu?.classList.toggle("hidden", isOpen);
+    menu?.classList.toggle("flex", !isOpen);
+    toggle.setAttribute("aria-expanded", String(!isOpen));
+  });
+</script>

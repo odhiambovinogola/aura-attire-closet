@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #1a1410;
+  --color-cream: #faf6f0;
+  --color-gold: #b8923f;
+  --color-gold-light: #d9b876;
+  --font-display: "Georgia", "Times New Roman", serif;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+}

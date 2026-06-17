@@ -1,0 +1,31 @@
+---
+import type { Category } from "../lib/types";
+
+interface Props {
+  categories: Category[];
+  activeSlug?: string;
+}
+
+const { categories, activeSlug } = Astro.props;
+---
+
+<div class="flex gap-2 overflow-x-auto px-4 pb-2 sm:flex-wrap sm:overflow-visible sm:px-0">
+  <a
+    href="/shop"
+    class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
+      !activeSlug ? "bg-ink text-cream" : "bg-ink/5 text-ink/70 hover:bg-ink/10"
+    }`}
+  >
+    All
+  </a>
+  {categories.map((category) => (
+    <a
+      href={`/shop?category=${category.slug}`}
+      class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
+        activeSlug === category.slug ? "bg-ink text-cream" : "bg-ink/5 text-ink/70 hover:bg-ink/10"
+      }`}
+    >
+      {category.name}
+    </a>
+  ))}
+</div>
