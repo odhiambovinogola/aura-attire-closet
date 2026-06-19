@@ -1,19 +1,106 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ProductCard from "../components/ProductCard.astro";
+import { supabase } from "../lib/supabase";
+import type { Category, Product } from "../lib/types";
+
+let categories: Category[] = [];
+let featured: Product[] = [];
+let loadError: string | null = null;
+
+try {
+  const { data: categoryData, error: categoryError } = await supabase
+    .from("categories")
+    .select("*")
+    .order("sort_order");
+  if (categoryError) throw categoryError;
+  categories = categoryData ?? [];
+
+  const { data: featuredData, error: featuredError } = await supabase
+    .from("products")
+    .select("*, product_images(*)")
+    .eq("is_published", true)
+    .eq("is_featured", true)
+    .order("sort_order")
+    .limit(8);
+  if (featuredError) throw featuredError;
+  featured = featuredData ?? [];
+} catch (err) {
+  loadError = err instanceof Error ? err.message : "Could not load the catalogue.";
+}
 ---
 
 <BaseLayout title="Home">
-  <div class="mx-auto flex max-w-3xl flex-col items-center px-4 py-20 text-center sm:px-6">
-    <h1 class="font-[family-name:var(--font-display)] text-3xl">Aura Attire Closet</h1>
-    <p class="mt-3 text-ink/70">Elegant pieces for every closet &mdash; by Nash Mbula.</p>
+  <!-- Hero -->
+  <div class="bg-ink px-4 py-20 text-center text-cream sm:px-6">
+    <h1 class="font-[family-name:var(--font-display)] text-4xl">Aura Attire Closet</h1>
+    <p class="mx-auto mt-3 max-w-md text-cream/80">One closet, endless OOTDs &mdash; elegant dresses, sets, jumpsuits, bags and shoes by Nash Mbula.</p>
     <a
       href="/shop"
-      class="mt-8 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90"
+      class="mt-8 inline-block rounded-full bg-gold px-8 py-3 text-sm font-semibold text-ink hover:opacity-90"
     >
       Browse the shop
     </a>
-    <p class="mt-10 text-xs text-ink/40">
-      This is an early build preview &mdash; the full home page is still being designed.
-    </p>
+  </div>
+
+  <!-- Category tiles -->
+  {!loadError && categories.length > 0 && (
+    <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <h2 class="font-[family-name:var(--font-display)] text-xl">Shop by category</h2>
+      <div class="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {categories.map((category) => (
+          <a
+            href={`/shop?category=${category.slug}`}
+            class="rounded-lg bg-ink/5 px-4 py-6 text-center text-sm font-medium hover:bg-ink/10"
+          >
+            {category.name}
+          </a>
+        ))}
+      </div>
+    </div>
+  )}
+
+  <!-- Featured products -->
+  {!loadError && featured.length > 0 && (
+    <div class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <h2 class="font-[family-name:var(--font-display)] text-xl">New in</h2>
+      <div class="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4">
+        {featured.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    </div>
+  )}
+
+  {loadError && (
+    <div class="mx-auto max-w-3xl px-4 py-12 text-center sm:px-6">
+      <p class="rounded-lg bg-ink/5 px-4 py-6 text-sm text-ink/70">
+        The catalogue isn't connected yet ({loadError}).
+      </p>
+    </div>
+  )}
+
+  <!-- Trust signals -->
+  <div class="border-t border-ink/10 px-4 py-12 text-center sm:px-6">
+    <p class="text-sm text-ink/70">Loved on Instagram by 957+ followers</p>
+    <div class="mt-3 flex justify-center gap-6 text-sm font-medium">
+      <a href="https://instagram.com/aura_attire_closet" target="_blank" rel="noopener noreferrer" class="hover:text-gold">
+        Instagram
+      </a>
+      <a href="https://facebook.com/StyleWithnash" target="_blank" rel="noopener noreferrer" class="hover:text-gold">
+        Facebook
+      </a>
+    </div>
+  </div>
+
+  <!-- WhatsApp entry point -->
+  <div class="bg-ink/5 px-4 py-12 text-center sm:px-6">
+    <p class="text-sm text-ink/70">Have a question before you order?</p>
+    <a
+      href="/contact"
+      class="mt-4 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-6 py-2.5 text-sm font-semibold text-white hover:opacity-90"
+    >
+      Chat with us on WhatsApp
+    </a>
   </div>
 </BaseLayout>
