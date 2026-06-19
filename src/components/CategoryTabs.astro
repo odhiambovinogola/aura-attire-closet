@@ -12,8 +12,8 @@ const { categories, activeSlug } = Astro.props;
 <div class="flex gap-2 overflow-x-auto px-4 pb-2 sm:flex-wrap sm:overflow-visible sm:px-0">
   <a
     href="/shop"
-    class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
-      !activeSlug ? "bg-ink text-cream" : "bg-ink/5 text-ink/70 hover:bg-ink/10"
+    class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+      !activeSlug ? "bg-gold text-cream" : "bg-blush text-ink/70 hover:bg-gold-light/60"
     }`}
   >
     All
@@ -21,8 +21,8 @@ const { categories, activeSlug } = Astro.props;
   {categories.map((category) => (
     <a
       href={`/shop?category=${category.slug}`}
-      class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ${
-        activeSlug === category.slug ? "bg-ink text-cream" : "bg-ink/5 text-ink/70 hover:bg-ink/10"
+      class={`whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+        activeSlug === category.slug ? "bg-gold text-cream" : "bg-blush text-ink/70 hover:bg-gold-light/60"
       }`}
     >
       {category.name}

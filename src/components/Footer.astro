@@ -1,19 +1,95 @@
 ---
+import { supabase } from "../lib/supabase";
+import type { Category } from "../lib/types";
+
 const currentYear = new Date().getFullYear();
+const whatsappNumber = import.meta.env.PUBLIC_WHATSAPP_NUMBER;
+const whatsappHref = `https://wa.me/${whatsappNumber}`;
+
+let categories: Category[] = [];
+try {
+  const { data } = await supabase.from("categories").select("*").order("sort_order");
+  categories = data ?? [];
+} catch {
+  categories = [];
+}
 ---
 
-<footer class="mt-16 border-t border-ink/10 bg-cream px-4 py-10 text-center sm:px-6">
-  <p class="font-[family-name:var(--font-display)] text-lg">Aura Attire Closet</p>
-  <p class="mt-1 text-sm text-ink/70">by Nash Mbula &mdash; since 2024</p>
+<footer class="bg-ink text-gold-light">
+  <div class="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
+    <div class="lg:col-span-1">
+      <a href="/" class="inline-flex flex-col items-start">
+        <span class="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-logo-gold">Aura Attire Closet</span>
+        <span class="mt-0.5 h-px w-full bg-logo-gold/50"></span>
+      </a>
+      <p class="mt-4 text-sm leading-relaxed text-taupe">
+        Curated dresses, sets, jumpsuits, bags and shoes &mdash; picked with care, ordered straight to me on WhatsApp.
+      </p>
+      <div class="mt-5 flex items-center gap-3">
+        <a
+          href="https://instagram.com/aura_attire_closet"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gold-light hover:bg-gold hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a3.7 3.7 0 0 1-.9 1.38 3.7 3.7 0 0 1-1.38.9c-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.5.01-4.74.07-.96.04-1.48.2-1.82.34-.46.18-.78.39-1.12.73-.34.34-.55.66-.73 1.12-.13.34-.3.86-.34 1.82C3.21 8.5 3.2 8.85 3.2 12s.01 3.5.07 4.74c.04.96.21 1.48.34 1.82.18.46.39.78.73 1.12.34.34.66.55 1.12.73.34.13.86.3 1.82.34 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c.96-.04 1.48-.21 1.82-.34.46-.18.78-.39 1.12-.73.34-.34.55-.66.73-1.12.13-.34.3-.86.34-1.82.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.04-.96-.21-1.48-.34-1.82a2.97 2.97 0 0 0-.73-1.12 2.97 2.97 0 0 0-1.12-.73c-.34-.13-.86-.3-1.82-.34C15.5 4.01 15.15 4 12 4zm0 3.8a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4zm0 1.8a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8zm5.35-2.4a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" /></svg>
+        </a>
+        <a
+          href="https://facebook.com/StyleWithnash"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Facebook"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gold-light hover:bg-gold hover:text-white"
+        >
+          <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.2c0-.87.24-1.46 1.5-1.46H16.5V4.14C16.07 4.1 14.97 4 13.7 4 11.07 4 9.5 5.49 9.5 8v2.5H7v3h2.5V21h4z" /></svg>
+        </a>
+        <a
+          href={whatsappHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="WhatsApp"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-gold-light hover:bg-whatsapp hover:text-white"
+        >
+          <svg viewBox="0 0 32 32" class="h-4 w-4" fill="currentColor"><path d="M16.004 2.667c-7.364 0-13.337 5.973-13.337 13.337 0 2.45.662 4.745 1.817 6.722l-1.93 7.05 7.218-1.894a13.27 13.27 0 0 0 6.232 1.46h.006c7.364 0 13.337-5.974 13.337-13.338S23.368 2.667 16.004 2.667z" /></svg>
+        </a>
+      </div>
+    </div>
 
-  <div class="mt-4 flex justify-center gap-4 text-sm">
-    <a href="https://instagram.com/aura_attire_closet" target="_blank" rel="noopener noreferrer" class="hover:text-gold">
-      Instagram
-    </a>
-    <a href="https://facebook.com/StyleWithnash" target="_blank" rel="noopener noreferrer" class="hover:text-gold">
-      Facebook
-    </a>
+    <div>
+      <h4 class="text-xs font-semibold uppercase tracking-widest text-cream">Shop</h4>
+      <ul class="mt-5 space-y-2.5 text-sm text-taupe">
+        {categories.map((category) => (
+          <li><a href={`/shop?category=${category.slug}`} class="hover:text-gold-light">{category.name}</a></li>
+        ))}
+        {categories.length === 0 && <li><a href="/shop" class="hover:text-gold-light">All products</a></li>}
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-xs font-semibold uppercase tracking-widest text-cream">Information</h4>
+      <ul class="mt-5 space-y-2.5 text-sm text-taupe">
+        <li><a href="/about" class="hover:text-gold-light">About Me</a></li>
+        <li><a href="/contact" class="hover:text-gold-light">Contact</a></li>
+        <li><a href="/shop" class="hover:text-gold-light">Shop the Collection</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 class="text-xs font-semibold uppercase tracking-widest text-cream">Get in Touch</h4>
+      <ul class="mt-5 space-y-3 text-sm text-taupe">
+        <li>Nairobi, Kenya &mdash; delivering nationwide</li>
+        <li><a href={whatsappHref} target="_blank" rel="noopener noreferrer" class="hover:text-gold-light">WhatsApp Orders</a></li>
+        <li><a href="https://instagram.com/aura_attire_closet" target="_blank" rel="noopener noreferrer" class="hover:text-gold-light">Instagram &middot; 957 followers</a></li>
+        <li><a href="https://facebook.com/StyleWithnash" target="_blank" rel="noopener noreferrer" class="hover:text-gold-light">Facebook</a></li>
+      </ul>
+    </div>
   </div>
 
-  <p class="mt-6 text-xs text-ink/50">&copy; {currentYear} Aura Attire Closet. All rights reserved.</p>
+  <div class="border-t border-white/10">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-5 text-xs text-taupe sm:flex-row sm:px-6">
+      <p>&copy; {currentYear} Aura Attire Closet. All rights reserved.</p>
+      <p>&mdash; Nash Mbula</p>
+    </div>
+  </div>
 </footer>

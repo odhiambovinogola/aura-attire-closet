@@ -1,4 +1,10 @@
 ---
+interface Props {
+  transparent?: boolean;
+}
+
+const { transparent = false } = Astro.props;
+
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
@@ -7,13 +13,18 @@ const navItems = [
 ];
 ---
 
-<header class="border-b border-ink/10 bg-cream">
-  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-    <a href="/" class="flex items-center gap-2.5">
-      <img src="/logo.png" alt="Aura Attire Closet" class="h-10 w-auto rounded-full bg-ink p-1" />
-      <span class="font-[family-name:var(--font-display)] text-xl tracking-wide">
+<header
+  data-transparent={transparent ? "true" : "false"}
+  class={`fixed inset-x-0 top-0 z-50 transition-colors duration-300 ${
+    transparent ? "border-b border-transparent bg-transparent text-cream" : "border-b border-gold-light/40 bg-cream/95 text-ink backdrop-blur-sm"
+  }`}
+>
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
+    <a href="/" class="inline-flex flex-col items-start">
+      <span class="font-[family-name:var(--font-display)] text-xl font-bold tracking-wide text-logo-gold">
         Aura Attire Closet
       </span>
+      <span class="mt-0.5 h-px w-full bg-logo-gold/50"></span>
     </a>
 
     <nav class="hidden items-center gap-8 sm:flex">
@@ -22,7 +33,7 @@ const navItems = [
           {item.label}
         </a>
       ))}
-      <a href="/cart" aria-label="View cart" class="relative flex h-9 w-9 items-center justify-center">
+      <a href="/cart" aria-label="View cart" class="relative flex h-9 w-9 items-center justify-center hover:text-gold">
         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
           <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" stroke-linecap="round" stroke-linejoin="round" />
           <circle cx="9" cy="21" r="1.2" />
@@ -56,7 +67,7 @@ const navItems = [
     </div>
   </div>
 
-  <nav id="mobile-nav" class="hidden flex-col gap-1 border-t border-ink/10 px-4 py-2 sm:hidden">
+  <nav id="mobile-nav" class="hidden flex-col gap-1 border-t border-gold-light/40 bg-cream px-4 py-2 text-ink sm:hidden">
     {navItems.map((item) => (
       <a href={item.href} class="py-2 text-sm font-medium tracking-wide hover:text-gold">
         {item.label}
@@ -68,15 +79,36 @@ const navItems = [
 <script>
   import { cartItems, cartCount } from "../lib/cart";
 
+  const header = document.querySelector<HTMLElement>("header[data-transparent]");
   const toggle = document.getElementById("nav-toggle");
   const menu = document.getElementById("mobile-nav");
+  const isTransparent = header?.dataset.transparent === "true";
+
+  const solidClasses = ["bg-cream/95", "text-ink", "backdrop-blur-sm", "border-gold-light/40"];
+  const transparentClasses = ["bg-transparent", "text-cream", "border-transparent"];
+
+  function applySolid(solid: boolean) {
+    header!.classList.remove(...solidClasses, ...transparentClasses);
+    header!.classList.add(...(solid ? solidClasses : transparentClasses));
+  }
+
+  function syncHeader() {
+    const menuOpen = menu?.classList.contains("flex");
+    applySolid(menuOpen || window.scrollY > 40);
+  }
 
   toggle?.addEventListener("click", () => {
     const isOpen = menu?.classList.contains("flex");
     menu?.classList.toggle("hidden", isOpen);
     menu?.classList.toggle("flex", !isOpen);
     toggle.setAttribute("aria-expanded", String(!isOpen));
+    if (isTransparent) syncHeader();
   });
+
+  if (isTransparent) {
+    syncHeader();
+    window.addEventListener("scroll", syncHeader, { passive: true });
+  }
 
   function renderCartBadge(count: number) {
     for (const id of ["cart-count", "cart-count-mobile"]) {

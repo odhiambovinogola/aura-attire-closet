@@ -10,9 +10,10 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
 
 <BaseLayout title="Contact" description="Chat with Nash Mbula on WhatsApp, Instagram or Facebook.">
   <div class="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-    <h1 class="font-[family-name:var(--font-display)] text-3xl">Get in touch</h1>
-    <p class="mt-3 text-sm text-ink/70">
-      WhatsApp is the fastest way to reach Nash &mdash; for questions, custom requests, or to
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
+    <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">Get in Touch</h1>
+    <p class="mt-3 text-sm text-taupe">
+      WhatsApp is the fastest way to reach me &mdash; for questions, custom requests, or to
       complete an order.
     </p>
 
@@ -20,12 +21,12 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
       href={whatsappHref}
       target="_blank"
       rel="noopener noreferrer"
-      class="mt-8 inline-flex items-center gap-2 rounded-full bg-[#25D366] px-8 py-3 text-sm font-semibold text-white hover:opacity-90"
+      class="mt-8 inline-flex items-center gap-2 rounded-sm bg-whatsapp px-8 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1da851]"
     >
       Chat on WhatsApp
     </a>
 
-    <p class="mt-10 text-sm text-ink/70">
+    <p class="mt-10 text-sm text-taupe">
       Prefer Instagram or Facebook? Those work too &mdash; message whichever you're already on.
     </p>
 
@@ -34,7 +35,7 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
         href="https://instagram.com/aura_attire_closet"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-gold"
+        class="text-gold hover:text-gold-dark"
       >
         Instagram
       </a>
@@ -42,7 +43,7 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
         href="https://facebook.com/StyleWithnash"
         target="_blank"
         rel="noopener noreferrer"
-        class="hover:text-gold"
+        class="text-gold hover:text-gold-dark"
       >
         Facebook
       </a>

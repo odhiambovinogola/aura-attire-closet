@@ -4,21 +4,21 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
 <BaseLayout title="Cart" description="Review your order and send it to Nash on WhatsApp.">
   <div class="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-    <h1 class="font-[family-name:var(--font-display)] text-2xl">Your Order</h1>
+    <h1 class="font-[family-name:var(--font-display)] text-2xl font-bold">Your Order</h1>
 
-    <ol class="mt-4 flex gap-4 text-sm text-ink/50">
+    <ol class="mt-4 flex gap-4 text-sm text-taupe">
       <li data-step-label="review" class="font-semibold text-ink">1. Review</li>
       <li data-step-label="delivery">2. Delivery</li>
       <li data-step-label="confirm">3. Confirm</li>
     </ol>
 
-    <div id="cart-empty" class="mt-10 hidden rounded-lg bg-ink/5 px-4 py-10 text-center text-sm text-ink/70">
-      Your cart is empty. <a href="/shop" class="font-medium underline">Browse the shop</a>.
+    <div id="cart-empty" class="mt-10 hidden rounded-lg bg-blush px-4 py-10 text-center text-sm text-taupe">
+      Your cart is empty. <a href="/shop" class="font-medium text-gold underline">Browse the shop</a>.
     </div>
 
     <!-- Step 1: Review -->
     <section id="step-review" class="mt-8 hidden">
-      <ul id="cart-lines" class="divide-y divide-ink/10"></ul>
+      <ul id="cart-lines" class="divide-y divide-gold-light/40"></ul>
       <p class="mt-4 flex justify-between text-sm font-semibold">
         <span>Total</span>
         <span id="cart-total"></span>
@@ -26,7 +26,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <button
         type="button"
         id="to-delivery"
-        class="mt-6 w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90"
+        class="mt-6 w-full rounded-sm bg-gold px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark"
       >
         Continue to delivery
       </button>
@@ -36,33 +36,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <section id="step-delivery" class="mt-8 hidden">
       <p class="text-sm font-medium">Choose a delivery option</p>
       <div id="delivery-options" class="mt-3 space-y-2">
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-ink/15 p-4">
-          <input type="radio" name="delivery" value="Pickup Mtaani" class="mt-0.5" />
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gold-light p-4 has-[:checked]:border-gold has-[:checked]:bg-blush">
+          <input type="radio" name="delivery" value="Pickup Mtaani" class="mt-0.5 accent-gold" />
           <span>
             <span class="block text-sm font-medium">Pickup Mtaani</span>
-            <span class="block text-sm text-ink/60">Collect from a Pickup Mtaani point near you.</span>
+            <span class="block text-sm text-taupe">Collect from a Pickup Mtaani point near you.</span>
           </span>
         </label>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-ink/15 p-4">
-          <input type="radio" name="delivery" value="Bolt rider" class="mt-0.5" />
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gold-light p-4 has-[:checked]:border-gold has-[:checked]:bg-blush">
+          <input type="radio" name="delivery" value="Bolt rider" class="mt-0.5 accent-gold" />
           <span>
             <span class="block text-sm font-medium">Bolt rider</span>
-            <span class="block text-sm text-ink/60">A Bolt courier delivers to your address.</span>
+            <span class="block text-sm text-taupe">A Bolt courier delivers to your address.</span>
           </span>
         </label>
-        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-ink/15 p-4">
-          <input type="radio" name="delivery" value="Contact for local arrangement" class="mt-0.5" />
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-gold-light p-4 has-[:checked]:border-gold has-[:checked]:bg-blush">
+          <input type="radio" name="delivery" value="Contact for local arrangement" class="mt-0.5 accent-gold" />
           <span>
             <span class="block text-sm font-medium">Contact for local arrangement</span>
-            <span class="block text-sm text-ink/60">For destinations needing custom coordination &mdash; Nash will arrange this with you directly.</span>
+            <span class="block text-sm text-taupe">For destinations needing custom coordination &mdash; I'll arrange this with you directly.</span>
           </span>
         </label>
       </div>
       <div class="mt-6 flex gap-3">
-        <button type="button" id="back-to-review" class="w-1/3 rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:bg-ink/5">
+        <button type="button" id="back-to-review" class="w-1/3 rounded-sm border border-gold-light px-6 py-3 text-sm font-semibold hover:bg-blush">
           Back
         </button>
-        <button type="button" id="to-confirm" class="w-2/3 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
+        <button type="button" id="to-confirm" class="w-2/3 rounded-sm bg-gold px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark">
           Continue to confirm
         </button>
       </div>
@@ -70,22 +70,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <!-- Step 3: Confirm -->
     <section id="step-confirm" class="mt-8 hidden">
-      <p class="text-sm text-ink/70">
-        We'll open WhatsApp with your order details filled in &mdash; just hit send to reach Nash.
+      <p class="text-sm text-taupe">
+        We'll open WhatsApp with your order details filled in &mdash; just hit send to reach me.
       </p>
-      <ul id="confirm-lines" class="mt-4 divide-y divide-ink/10"></ul>
+      <ul id="confirm-lines" class="mt-4 divide-y divide-gold-light/40"></ul>
       <p class="mt-4 flex justify-between text-sm font-semibold">
         <span>Total</span>
         <span id="confirm-total"></span>
       </p>
-      <p class="mt-2 text-sm text-ink/70">
+      <p class="mt-2 text-sm text-taupe">
         Delivery: <span id="confirm-delivery" class="font-medium text-ink"></span>
       </p>
       <div class="mt-6 flex gap-3">
-        <button type="button" id="back-to-delivery" class="w-1/3 rounded-full border border-ink/20 px-6 py-3 text-sm font-semibold hover:bg-ink/5">
+        <button type="button" id="back-to-delivery" class="w-1/3 rounded-sm border border-gold-light px-6 py-3 text-sm font-semibold hover:bg-blush">
           Back
         </button>
-        <button type="button" id="send-order" class="w-2/3 rounded-full bg-[#25D366] px-6 py-3 text-sm font-semibold text-white hover:opacity-90">
+        <button type="button" id="send-order" class="w-2/3 rounded-sm bg-whatsapp px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1da851]">
           Send order via WhatsApp
         </button>
       </div>

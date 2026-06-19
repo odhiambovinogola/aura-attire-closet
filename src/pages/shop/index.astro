@@ -41,21 +41,22 @@ try {
 ---
 
 <BaseLayout title="Shop">
-  <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
-    <h1 class="font-[family-name:var(--font-display)] text-2xl">Shop</h1>
+  <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
+    <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">Shop the Collection</h1>
 
     <div class="mt-6">
       <CategoryTabs categories={categories} activeSlug={activeSlug} />
     </div>
 
     {loadError && (
-      <p class="mt-8 rounded-lg bg-ink/5 px-4 py-6 text-sm text-ink/70">
+      <p class="mt-8 rounded-lg bg-blush px-4 py-6 text-sm text-taupe">
         The catalogue isn't connected yet ({loadError}). Once Supabase is configured and seeded, products will appear here.
       </p>
     )}
 
     {!loadError && products.length === 0 && (
-      <p class="mt-8 rounded-lg bg-ink/5 px-4 py-6 text-sm text-ink/70">
+      <p class="mt-8 rounded-lg bg-blush px-4 py-6 text-sm text-taupe">
         No items here yet — check back soon.
       </p>
     )}

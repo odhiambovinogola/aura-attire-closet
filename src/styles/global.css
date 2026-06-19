@@ -1,14 +1,95 @@
 @import "tailwindcss";
 
+/* ============================================================
+   AURA ATTIRE CLOSET — Warm Terracotta Editorial Theme
+   Palette: warm ivory bg, terracotta accent, espresso text
+   Fonts: Playfair Display (display) + DM Sans (body/UI)
+   Adapted from the Manus reference build — see Brief decisions log 2026-06-20.
+   ============================================================ */
+
 @theme {
-  --color-ink: #1a1410;
-  --color-cream: #faf6f0;
-  --color-gold: #b8923f;
-  --color-gold-light: #d9b876;
-  --font-display: "Georgia", "Times New Roman", serif;
+  --color-ink: #2c1a0e;
+  --color-cream: #faf7f2;
+  --color-blush: #f3ede3;
+  --color-gold: #c4714a;
+  --color-gold-dark: #a85e3a;
+  --color-gold-light: #e8c4a0;
+  --color-taupe: #8c7b6e;
+  --color-whatsapp: #25d366;
+  --color-logo-gold: #bf993c; /* pulled from the real logo.png artwork's foil-gold lettering */
+  --font-display: "Playfair Display", "Georgia", serif;
+  --font-sans: "DM Sans", "Helvetica Neue", sans-serif;
 }
 
 body {
   background-color: var(--color-cream);
   color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+}
+
+@layer components {
+  /* Editorial rule: short accent dash + faint full-width line */
+  .editorial-rule {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .editorial-rule::before {
+    content: "";
+    width: 2rem;
+    height: 1px;
+    background: var(--color-gold);
+  }
+  .editorial-rule::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: color-mix(in oklab, var(--color-gold-light) 50%, transparent);
+  }
+
+  /* Product card hover lift */
+  .product-card-media {
+    transition: box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .product-card:hover .product-card-media {
+    box-shadow: 0 8px 32px color-mix(in oklab, var(--color-ink) 15%, transparent);
+  }
+
+  /* Swatch / chip selected ring */
+  .chip[aria-pressed="true"] {
+    border-color: var(--color-ink);
+    background-color: color-mix(in oklab, var(--color-ink) 5%, transparent);
+  }
+  .swatch-selected {
+    outline: 2px solid var(--color-gold);
+    outline-offset: 2px;
+  }
+
+  /* WhatsApp FAB pulse */
+  @keyframes wa-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-whatsapp) 40%, transparent); }
+    50% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--color-whatsapp) 0%, transparent); }
+  }
+  .wa-fab {
+    animation: wa-pulse 3s ease-in-out infinite;
+  }
+
+  /* Entrance animation */
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up {
+    animation: fade-up 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-fade-up, .wa-fab {
+      animation: none;
+    }
+  }
 }
