@@ -8,6 +8,7 @@ Storefront (catalog, order-via-WhatsApp) for a clothing seller. Astro (server ou
 - `npm run build` — production build to `./dist/`
 - `npm run preview` — preview the production build locally
 - `npx astro check` — type-check `.astro`/`.ts` files (run before considering a change done)
+- `npm run test` — run the vitest suite (currently covers `whatsapp.ts`'s order-message builder)
 - Run `supabase/schema.sql` in the Supabase SQL editor to (re)create tables/RLS/storage bucket — there are no migration files, it's the single source of truth for schema
 
 ## Caveats
