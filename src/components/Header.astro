@@ -2,34 +2,58 @@
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Shop", href: "/shop" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
 ];
 ---
 
 <header class="border-b border-ink/10 bg-cream">
   <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-    <a href="/" class="font-[family-name:var(--font-display)] text-xl tracking-wide">
-      Aura Attire Closet
+    <a href="/" class="flex items-center gap-2.5">
+      <img src="/logo.png" alt="Aura Attire Closet" class="h-10 w-auto rounded-full bg-ink p-1" />
+      <span class="font-[family-name:var(--font-display)] text-xl tracking-wide">
+        Aura Attire Closet
+      </span>
     </a>
 
-    <nav class="hidden gap-8 sm:flex">
+    <nav class="hidden items-center gap-8 sm:flex">
       {navItems.map((item) => (
         <a href={item.href} class="text-sm font-medium tracking-wide hover:text-gold">
           {item.label}
         </a>
       ))}
+      <a href="/cart" aria-label="View cart" class="relative flex h-9 w-9 items-center justify-center">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="9" cy="21" r="1.2" />
+          <circle cx="17" cy="21" r="1.2" />
+        </svg>
+        <span id="cart-count" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-cream">0</span>
+      </a>
     </nav>
 
-    <button
-      id="nav-toggle"
-      type="button"
-      aria-label="Open menu"
-      aria-expanded="false"
-      class="flex h-10 w-10 items-center justify-center sm:hidden"
-    >
-      <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" />
-      </svg>
-    </button>
+    <div class="flex items-center gap-3 sm:hidden">
+      <a href="/cart" aria-label="View cart" class="relative flex h-10 w-10 items-center justify-center">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="9" cy="21" r="1.2" />
+          <circle cx="17" cy="21" r="1.2" />
+        </svg>
+        <span id="cart-count-mobile" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-cream">0</span>
+      </a>
+
+      <button
+        id="nav-toggle"
+        type="button"
+        aria-label="Open menu"
+        aria-expanded="false"
+        class="flex h-10 w-10 items-center justify-center"
+      >
+        <svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 6h18M3 12h18M3 18h18" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
   </div>
 
   <nav id="mobile-nav" class="hidden flex-col gap-1 border-t border-ink/10 px-4 py-2 sm:hidden">
@@ -42,6 +66,8 @@ const navItems = [
 </header>
 
 <script>
+  import { cartItems, cartCount } from "../lib/cart";
+
   const toggle = document.getElementById("nav-toggle");
   const menu = document.getElementById("mobile-nav");
 
@@ -51,4 +77,16 @@ const navItems = [
     menu?.classList.toggle("flex", !isOpen);
     toggle.setAttribute("aria-expanded", String(!isOpen));
   });
+
+  function renderCartBadge(count: number) {
+    for (const id of ["cart-count", "cart-count-mobile"]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.textContent = String(count);
+      el.classList.toggle("hidden", count === 0);
+      el.classList.toggle("flex", count > 0);
+    }
+  }
+
+  cartItems.subscribe((items) => renderCartBadge(cartCount(items)));
 </script>
