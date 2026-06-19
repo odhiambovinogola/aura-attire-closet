@@ -1,0 +1,53 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin Login">
+  <div class="mx-auto max-w-sm px-4 py-20 sm:px-6">
+    <h1 class="font-[family-name:var(--font-display)] text-2xl">Admin Login</h1>
+    <p class="mt-2 text-sm text-ink/60">For Nash's catalogue admin only.</p>
+
+    <form id="login-form" class="mt-8 space-y-4">
+      <div>
+        <label for="email" class="block text-sm text-ink/70">Email</label>
+        <input id="email" name="email" type="email" required
+          class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+      <div>
+        <label for="password" class="block text-sm text-ink/70">Password</label>
+        <input id="password" name="password" type="password" required
+          class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+      <button type="submit" class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
+        Log in
+      </button>
+      <p id="login-error" class="hidden text-sm text-red-700"></p>
+    </form>
+  </div>
+</BaseLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+
+  const form = document.getElementById("login-form") as HTMLFormElement;
+  const errorEl = document.getElementById("login-error");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    const email = String(formData.get("email"));
+    const password = String(formData.get("password"));
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      if (errorEl) {
+        errorEl.textContent = "Incorrect email or password.";
+        errorEl.classList.remove("hidden");
+      }
+      return;
+    }
+
+    window.location.href = "/admin";
+  });
+</script>

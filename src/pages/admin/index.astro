@@ -1,0 +1,88 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin">
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <div class="flex items-center justify-between">
+      <h1 class="font-[family-name:var(--font-display)] text-2xl">Products</h1>
+      <div class="flex gap-3">
+        <a href="/admin/products/new" class="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream hover:opacity-90">
+          + New product
+        </a>
+        <button id="logout" type="button" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5">
+          Log out
+        </button>
+      </div>
+    </div>
+
+    <div id="admin-loading" class="mt-10 text-sm text-ink/50">Checking session&hellip;</div>
+    <table id="product-table" class="mt-8 hidden w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-ink/10 text-ink/50">
+          <th class="py-2 font-medium">Name</th>
+          <th class="py-2 font-medium">Category</th>
+          <th class="py-2 font-medium">Price</th>
+          <th class="py-2 font-medium">Published</th>
+          <th class="py-2 font-medium">Featured</th>
+          <th class="py-2"></th>
+        </tr>
+      </thead>
+      <tbody id="product-rows" class="divide-y divide-ink/10"></tbody>
+    </table>
+  </div>
+</BaseLayout>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+  import { requireSession, logout } from "../../lib/admin-auth";
+  import { formatKES } from "../../lib/format";
+
+  document.getElementById("logout")?.addEventListener("click", logout);
+
+  async function init() {
+    const session = await requireSession();
+    if (!session) return;
+
+    const { data: categories } = await supabase.from("categories").select("id, name");
+    const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
+
+    const { data: products, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("sort_order");
+
+    document.getElementById("admin-loading")?.classList.add("hidden");
+
+    if (error || !products) {
+      const loading = document.getElementById("admin-loading");
+      if (loading) {
+        loading.textContent = "Could not load products.";
+        loading.classList.remove("hidden");
+      }
+      return;
+    }
+
+    const rows = document.getElementById("product-rows");
+    const table = document.getElementById("product-table");
+    table?.classList.remove("hidden");
+
+    if (rows) {
+      rows.innerHTML = "";
+      for (const product of products) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="py-3 font-medium">${product.name}</td>
+          <td class="py-3 text-ink/70">${categoryNameById.get(product.category_id) ?? ""}</td>
+          <td class="py-3 text-ink/70">${formatKES(product.price_kes)}</td>
+          <td class="py-3">${product.is_published ? "Yes" : "No"}</td>
+          <td class="py-3">${product.is_featured ? "Yes" : "No"}</td>
+          <td class="py-3 text-right"><a href="/admin/products/${product.id}" class="font-medium underline">Edit</a></td>
+        `;
+        rows.appendChild(tr);
+      }
+    }
+  }
+
+  init();
+</script>

@@ -1,0 +1,242 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const { id } = Astro.params;
+---
+
+<BaseLayout title="Edit Product">
+  <div class="mx-auto max-w-xl px-4 py-8 sm:px-6">
+    <a href="/admin" class="text-sm text-ink/60 underline">&larr; Back to products</a>
+    <h1 class="mt-3 font-[family-name:var(--font-display)] text-2xl">
+      {id === "new" ? "New product" : "Edit product"}
+    </h1>
+
+    <div id="admin-loading" class="mt-10 text-sm text-ink/50">Checking session&hellip;</div>
+
+    <form id="product-form" data-product-id={id} class="mt-8 hidden space-y-4">
+      <div>
+        <label for="name" class="block text-sm text-ink/70">Name</label>
+        <input id="name" name="name" type="text" required class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+
+      <div>
+        <label for="category_id" class="block text-sm text-ink/70">Category</label>
+        <select id="category_id" name="category_id" required class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"></select>
+      </div>
+
+      <div>
+        <label for="price_kes" class="block text-sm text-ink/70">Price (KES)</label>
+        <input id="price_kes" name="price_kes" type="number" min="0" required class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+
+      <div>
+        <label for="description" class="block text-sm text-ink/70">Description</label>
+        <textarea id="description" name="description" rows="3" class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm"></textarea>
+      </div>
+
+      <div>
+        <label for="colours" class="block text-sm text-ink/70">Colours (comma-separated)</label>
+        <input id="colours" name="colours" type="text" placeholder="Black, White, Red"
+          class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+
+      <div>
+        <label for="sizes" class="block text-sm text-ink/70">Sizes (comma-separated)</label>
+        <input id="sizes" name="sizes" type="text" placeholder="S, M, L"
+          class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+      </div>
+
+      <div class="flex gap-6">
+        <label class="flex items-center gap-2 text-sm">
+          <input id="is_published" name="is_published" type="checkbox" checked />
+          Published
+        </label>
+        <label class="flex items-center gap-2 text-sm">
+          <input id="is_featured" name="is_featured" type="checkbox" />
+          Featured on Home
+        </label>
+      </div>
+
+      <div>
+        <label for="image" class="block text-sm text-ink/70">Add a photo</label>
+        <input id="image" name="image" type="file" accept="image/*"
+          class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+        <p id="image-status" class="mt-1 text-xs text-ink/50"></p>
+        <div id="existing-images" class="mt-3 flex flex-wrap gap-2"></div>
+      </div>
+
+      <button type="submit" class="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
+        Save product
+      </button>
+      <p id="form-status" class="hidden text-sm"></p>
+    </form>
+  </div>
+</BaseLayout>
+
+<script>
+  import { supabase } from "../../../lib/supabase";
+  import { requireSession } from "../../../lib/admin-auth";
+  import { slugify } from "../../../lib/format";
+  import { productImageUrl } from "../../../lib/images";
+  import imageCompression from "browser-image-compression";
+
+  const form = document.getElementById("product-form") as HTMLFormElement;
+  const productId = form.dataset.productId ?? "new";
+  const isNew = productId === "new";
+  const formStatus = document.getElementById("form-status");
+  const imageStatus = document.getElementById("image-status");
+  const existingImagesEl = document.getElementById("existing-images");
+
+  async function loadCategories(selectedId?: string) {
+    const { data: categories } = await supabase.from("categories").select("id, name").order("sort_order");
+    const select = document.getElementById("category_id") as HTMLSelectElement;
+    select.innerHTML = "";
+    for (const category of categories ?? []) {
+      const option = document.createElement("option");
+      option.value = category.id;
+      option.textContent = category.name;
+      if (category.id === selectedId) option.selected = true;
+      select.appendChild(option);
+    }
+  }
+
+  function renderExistingImages(images: { id: string; storage_path: string; is_primary: boolean }[]) {
+    if (!existingImagesEl) return;
+    existingImagesEl.innerHTML = "";
+    for (const img of images) {
+      const wrap = document.createElement("div");
+      wrap.className = "relative";
+      const el = document.createElement("img");
+      el.src = productImageUrl(img.storage_path);
+      el.className = `h-20 w-20 rounded-lg object-cover ${img.is_primary ? "ring-2 ring-gold" : ""}`;
+      wrap.appendChild(el);
+      existingImagesEl.appendChild(wrap);
+    }
+  }
+
+  async function init() {
+    const session = await requireSession();
+    if (!session) return;
+
+    await loadCategories();
+
+    if (!isNew) {
+      const { data: product, error } = await supabase
+        .from("products")
+        .select("*, product_images(*)")
+        .eq("id", productId)
+        .maybeSingle();
+
+      if (error || !product) {
+        document.getElementById("admin-loading")!.textContent = "Product not found.";
+        return;
+      }
+
+      (document.getElementById("name") as HTMLInputElement).value = product.name;
+      (document.getElementById("price_kes") as HTMLInputElement).value = String(product.price_kes);
+      (document.getElementById("description") as HTMLTextAreaElement).value = product.description ?? "";
+      (document.getElementById("colours") as HTMLInputElement).value = (product.colours ?? []).join(", ");
+      (document.getElementById("sizes") as HTMLInputElement).value = (product.sizes ?? []).join(", ");
+      (document.getElementById("is_published") as HTMLInputElement).checked = product.is_published;
+      (document.getElementById("is_featured") as HTMLInputElement).checked = product.is_featured;
+      await loadCategories(product.category_id);
+      renderExistingImages(product.product_images ?? []);
+    }
+
+    document.getElementById("admin-loading")?.classList.add("hidden");
+    form.classList.remove("hidden");
+  }
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+
+    const name = String(formData.get("name") ?? "").trim();
+    const record = {
+      name,
+      slug: slugify(name),
+      category_id: String(formData.get("category_id")),
+      price_kes: Number(formData.get("price_kes")),
+      description: String(formData.get("description") ?? "").trim() || null,
+      colours: String(formData.get("colours") ?? "")
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
+      sizes: String(formData.get("sizes") ?? "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      is_published: formData.get("is_published") === "on",
+      is_featured: formData.get("is_featured") === "on",
+    };
+
+    let currentId = productId;
+
+    if (isNew) {
+      const { data, error } = await supabase.from("products").insert(record).select("id").single();
+      if (error || !data) {
+        if (formStatus) {
+          formStatus.textContent = "Could not save: " + (error?.message ?? "unknown error");
+          formStatus.classList.remove("hidden");
+        }
+        return;
+      }
+      currentId = data.id;
+    } else {
+      const { error } = await supabase.from("products").update(record).eq("id", productId);
+      if (error) {
+        if (formStatus) {
+          formStatus.textContent = "Could not save: " + error.message;
+          formStatus.classList.remove("hidden");
+        }
+        return;
+      }
+    }
+
+    const fileInput = document.getElementById("image") as HTMLInputElement;
+    const file = fileInput.files?.[0];
+    if (file) {
+      if (imageStatus) imageStatus.textContent = "Compressing image...";
+      const compressed = await imageCompression(file, {
+        maxWidthOrHeight: 1600,
+        maxSizeMB: 0.4,
+        fileType: "image/webp",
+      });
+
+      const { data: existingImages } = await supabase
+        .from("product_images")
+        .select("id")
+        .eq("product_id", currentId);
+      const isPrimary = !existingImages || existingImages.length === 0;
+
+      const storagePath = `${record.slug}/${Date.now()}.webp`;
+      if (imageStatus) imageStatus.textContent = "Uploading image...";
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(storagePath, compressed, { contentType: "image/webp" });
+
+      if (uploadError) {
+        if (imageStatus) imageStatus.textContent = "Image upload failed: " + uploadError.message;
+      } else {
+        await supabase.from("product_images").insert({
+          product_id: currentId,
+          storage_path: storagePath,
+          alt: record.name,
+          is_primary: isPrimary,
+        });
+        if (imageStatus) imageStatus.textContent = "Image uploaded.";
+      }
+    }
+
+    if (formStatus) {
+      formStatus.textContent = "Saved.";
+      formStatus.classList.remove("hidden");
+    }
+
+    if (isNew) {
+      window.location.href = `/admin/products/${currentId}`;
+    }
+  });
+
+  init();
+</script>
