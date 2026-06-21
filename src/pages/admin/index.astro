@@ -4,9 +4,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
 <BaseLayout title="Admin">
   <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h1 class="font-[family-name:var(--font-display)] text-2xl">Products</h1>
-      <div class="flex gap-3">
+      <div class="flex flex-wrap gap-2 sm:gap-3">
         <a href="/admin/settings" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5">
           Site Settings
         </a>
@@ -48,19 +48,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       class="mt-6 hidden w-full max-w-sm rounded-lg border border-ink/15 px-3 py-2 text-sm"
     />
 
-    <table id="product-table" class="mt-8 hidden w-full text-left text-sm">
-      <thead>
-        <tr class="border-b border-ink/10 text-ink/50">
-          <th class="py-2 font-medium">Name</th>
-          <th class="py-2 font-medium">Category</th>
-          <th class="py-2 font-medium">Price</th>
-          <th class="py-2 font-medium">Published</th>
-          <th class="py-2 font-medium">Featured</th>
-          <th class="py-2"></th>
-        </tr>
-      </thead>
-      <tbody id="product-rows" class="divide-y divide-ink/10"></tbody>
-    </table>
+    <ul id="product-cards" class="mt-8 hidden flex-col gap-3 sm:hidden"></ul>
+
+    <div class="mt-8 hidden overflow-x-auto max-sm:hidden" id="product-table-wrap">
+      <table id="product-table" class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b border-ink/10 text-ink/50">
+            <th class="py-2 pr-4 font-medium">Name</th>
+            <th class="py-2 pr-4 font-medium">Category</th>
+            <th class="py-2 pr-4 font-medium">Price</th>
+            <th class="py-2 pr-4 font-medium">Published</th>
+            <th class="py-2 pr-4 font-medium">Featured</th>
+            <th class="py-2"></th>
+          </tr>
+        </thead>
+        <tbody id="product-rows" class="divide-y divide-ink/10"></tbody>
+      </table>
+    </div>
   </div>
 </BaseLayout>
 
@@ -168,44 +172,8 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   let allProducts: Array<Record<string, any>> = [];
   let categoryNameById = new Map<string, string>();
 
-  function renderRows(filter: string) {
-    const rows = document.getElementById("product-rows");
-    if (!rows) return;
-
-    const needle = filter.trim().toLowerCase();
-    const visible = needle
-      ? allProducts.filter((product) => {
-          const categoryName = categoryNameById.get(product.category_id) ?? "";
-          return (
-            product.name.toLowerCase().includes(needle) || categoryName.toLowerCase().includes(needle)
-          );
-        })
-      : allProducts;
-
-    rows.innerHTML = "";
-    for (const product of visible) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="py-3 font-medium">${product.name}</td>
-        <td class="py-3 text-ink/70">${categoryNameById.get(product.category_id) ?? ""}</td>
-        <td class="py-3 text-ink/70">${formatKES(product.price_kes)}</td>
-        <td class="py-3">${product.is_published ? "Yes" : "No"}</td>
-        <td class="py-3">${product.is_featured ? "Yes" : "No"}</td>
-        <td class="py-3 text-right">
-          <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
-          <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="ml-3 text-ink/50 underline">Delete</button>
-        </td>
-      `;
-      rows.appendChild(tr);
-    }
-
-    if (visible.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="py-6 text-center text-ink/50" colspan="6">No products match "${filter}".</td>`;
-      rows.appendChild(tr);
-    }
-
-    rows.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((button) => {
+  function attachDeleteHandlers(container: Element) {
+    container.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((button) => {
       button.addEventListener("click", async () => {
         const id = button.dataset.deleteId!;
         const name = button.dataset.deleteName ?? "this product";
@@ -232,6 +200,77 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         }
       });
     });
+  }
+
+  function renderRows(filter: string) {
+    const rows = document.getElementById("product-rows");
+    const cards = document.getElementById("product-cards");
+    if (!rows || !cards) return;
+
+    const needle = filter.trim().toLowerCase();
+    const visible = needle
+      ? allProducts.filter((product) => {
+          const categoryName = categoryNameById.get(product.category_id) ?? "";
+          return (
+            product.name.toLowerCase().includes(needle) || categoryName.toLowerCase().includes(needle)
+          );
+        })
+      : allProducts;
+
+    rows.innerHTML = "";
+    cards.innerHTML = "";
+
+    for (const product of visible) {
+      const categoryName = categoryNameById.get(product.category_id) ?? "";
+      const price = formatKES(product.price_kes);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="py-3 pr-4 font-medium whitespace-nowrap">${product.name}</td>
+        <td class="py-3 pr-4 text-ink/70 whitespace-nowrap">${categoryName}</td>
+        <td class="py-3 pr-4 text-ink/70 whitespace-nowrap">${price}</td>
+        <td class="py-3 pr-4 whitespace-nowrap">${product.is_published ? "Yes" : "No"}</td>
+        <td class="py-3 pr-4 whitespace-nowrap">${product.is_featured ? "Yes" : "No"}</td>
+        <td class="py-3 text-right whitespace-nowrap">
+          <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
+          <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="ml-3 text-ink/50 underline">Delete</button>
+        </td>
+      `;
+      rows.appendChild(tr);
+
+      const li = document.createElement("li");
+      li.className = "rounded-lg border border-ink/10 p-4";
+      li.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="font-medium">${product.name}</p>
+            <p class="mt-0.5 text-xs text-ink/60">${categoryName} &middot; ${price}</p>
+          </div>
+          <span class="shrink-0 rounded-full px-2 py-0.5 text-xs ${
+            product.is_published ? "bg-gold-light/40 text-ink" : "bg-ink/10 text-ink/50"
+          }">${product.is_published ? "Published" : "Draft"}</span>
+        </div>
+        <div class="mt-3 flex items-center gap-4 text-sm">
+          <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
+          <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="text-ink/50 underline">Delete</button>
+        </div>
+      `;
+      cards.appendChild(li);
+    }
+
+    if (visible.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="py-6 text-center text-ink/50" colspan="6">No products match "${filter}".</td>`;
+      rows.appendChild(tr);
+
+      const li = document.createElement("li");
+      li.className = "py-6 text-center text-sm text-ink/50";
+      li.textContent = `No products match "${filter}".`;
+      cards.appendChild(li);
+    }
+
+    attachDeleteHandlers(rows);
+    attachDeleteHandlers(cards);
   }
 
   async function loadProducts() {
@@ -261,7 +300,9 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       productCountByCategory.set(product.category_id, (productCountByCategory.get(product.category_id) ?? 0) + 1);
     }
 
-    document.getElementById("product-table")?.classList.remove("hidden");
+    document.getElementById("product-table-wrap")?.classList.remove("hidden");
+    document.getElementById("product-cards")?.classList.remove("hidden");
+    document.getElementById("product-cards")?.classList.add("flex");
     document.getElementById("product-search")?.classList.remove("hidden");
     document.getElementById("category-panel")?.classList.remove("hidden");
 
