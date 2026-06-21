@@ -1,16 +1,20 @@
 ---
+import { supabase } from "../lib/supabase";
+import type { Category } from "../lib/types";
+
 interface Props {
   transparent?: boolean;
 }
 
 const { transparent = false } = Astro.props;
 
-const navItems = [
-  { label: "Home", href: "/" },
-  { label: "Shop", href: "/shop" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
+let categories: Category[] = [];
+try {
+  const { data } = await supabase.from("categories").select("*").order("sort_order");
+  categories = data ?? [];
+} catch {
+  categories = [];
+}
 ---
 
 <header
@@ -28,11 +32,37 @@ const navItems = [
     </a>
 
     <nav class="hidden items-center gap-6 sm:flex">
-      {navItems.map((item) => (
-        <a href={item.href} class="text-sm font-medium tracking-wide hover:text-gold">
-          {item.label}
-        </a>
-      ))}
+      <a href="/" class="text-sm font-medium tracking-wide hover:text-gold">Home</a>
+
+      <div class="relative">
+        <button
+          id="shop-dropdown-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-haspopup="true"
+          class="flex items-center gap-1 text-sm font-medium tracking-wide hover:text-gold"
+        >
+          Shop
+          <svg viewBox="0 0 24 24" class="h-3 w-3 transition-transform" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <div
+          id="shop-dropdown-menu"
+          class="absolute left-0 top-full hidden w-52 rounded-lg border border-gold-light/40 bg-cream py-2 text-ink shadow-lg"
+        >
+          <a href="/shop" class="block px-4 py-2 text-sm font-medium hover:bg-blush hover:text-gold">All Products</a>
+          {categories.map((category) => (
+            <a href={`/shop?category=${category.slug}`} class="block px-4 py-2 text-sm hover:bg-blush hover:text-gold">
+              {category.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <a href="/about" class="text-sm font-medium tracking-wide hover:text-gold">About</a>
+      <a href="/contact" class="text-sm font-medium tracking-wide hover:text-gold">Contact</a>
+
       <form action="/shop" method="get" class="flex items-center">
         <input
           id="search-input"
@@ -93,9 +123,24 @@ const navItems = [
       </button>
     </div>
   </div>
+</header>
 
-  <nav id="mobile-nav" class="hidden flex-col gap-1 border-t border-gold-light/40 bg-cream px-4 py-2 text-ink sm:hidden">
-    <form action="/shop" method="get" class="py-2">
+<div id="mobile-nav-backdrop" class="fixed inset-0 z-40 hidden bg-ink/50 sm:hidden"></div>
+
+<nav
+    id="mobile-nav"
+    class="fixed inset-y-0 right-0 z-50 flex w-72 max-w-[85%] translate-x-full flex-col gap-1 overflow-y-auto bg-cream px-5 py-6 text-ink shadow-2xl transition-transform duration-300 sm:hidden"
+  >
+    <div class="flex items-center justify-between">
+      <span class="font-[family-name:var(--font-display)] text-lg font-bold text-logo-gold">Menu</span>
+      <button id="mobile-nav-close" type="button" aria-label="Close menu" class="flex h-9 w-9 items-center justify-center">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <form action="/shop" method="get" class="py-3">
       <input
         type="search"
         name="q"
@@ -103,13 +148,36 @@ const navItems = [
         class="w-full rounded-full border border-gold-light/60 px-3 py-2 text-sm"
       />
     </form>
-    {navItems.map((item) => (
-      <a href={item.href} class="py-2 text-sm font-medium tracking-wide hover:text-gold">
-        {item.label}
-      </a>
-    ))}
-  </nav>
-</header>
+
+    <a href="/" class="py-2 text-sm font-medium tracking-wide hover:text-gold">Home</a>
+
+    <div>
+      <div class="flex items-center justify-between">
+        <a href="/shop" class="py-2 text-sm font-medium tracking-wide hover:text-gold">Shop</a>
+        <button
+          id="mobile-shop-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-label="Show categories"
+          class="flex h-8 w-8 items-center justify-center"
+        >
+          <svg viewBox="0 0 24 24" class="h-3.5 w-3.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M6 9l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+      </div>
+      <div id="mobile-shop-categories" class="hidden flex-col gap-0.5 border-l border-gold-light/40 pl-3">
+        {categories.map((category) => (
+          <a href={`/shop?category=${category.slug}`} class="py-1.5 text-sm text-ink/70 hover:text-gold">
+            {category.name}
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <a href="/about" class="py-2 text-sm font-medium tracking-wide hover:text-gold">About</a>
+    <a href="/contact" class="py-2 text-sm font-medium tracking-wide hover:text-gold">Contact</a>
+</nav>
 
 <script>
   import { cartItems, cartCount } from "../lib/cart";
@@ -118,10 +186,14 @@ const navItems = [
   const header = document.querySelector<HTMLElement>("header[data-transparent]");
   const toggle = document.getElementById("nav-toggle");
   const menu = document.getElementById("mobile-nav");
+  const backdrop = document.getElementById("mobile-nav-backdrop");
+  const closeBtn = document.getElementById("mobile-nav-close");
   const isTransparent = header?.dataset.transparent === "true";
 
   const solidClasses = ["bg-cream/95", "text-ink", "backdrop-blur-sm", "border-gold-light/40"];
   const transparentClasses = ["bg-transparent", "text-cream", "border-transparent"];
+
+  let menuOpen = false;
 
   function applySolid(solid: boolean) {
     header!.classList.remove(...solidClasses, ...transparentClasses);
@@ -129,22 +201,58 @@ const navItems = [
   }
 
   function syncHeader() {
-    const menuOpen = menu?.classList.contains("flex");
     applySolid(menuOpen || window.scrollY > 40);
   }
 
-  toggle?.addEventListener("click", () => {
-    const isOpen = menu?.classList.contains("flex");
-    menu?.classList.toggle("hidden", isOpen);
-    menu?.classList.toggle("flex", !isOpen);
-    toggle.setAttribute("aria-expanded", String(!isOpen));
+  function setMenuOpen(open: boolean) {
+    menuOpen = open;
+    menu?.classList.toggle("translate-x-full", !open);
+    menu?.classList.toggle("translate-x-0", open);
+    backdrop?.classList.toggle("hidden", !open);
+    document.body.classList.toggle("overflow-hidden", open);
+    toggle?.setAttribute("aria-expanded", String(open));
     if (isTransparent) syncHeader();
+  }
+
+  toggle?.addEventListener("click", () => setMenuOpen(!menuOpen));
+  closeBtn?.addEventListener("click", () => setMenuOpen(false));
+  backdrop?.addEventListener("click", () => setMenuOpen(false));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && menuOpen) setMenuOpen(false);
   });
 
   if (isTransparent) {
     syncHeader();
     window.addEventListener("scroll", syncHeader, { passive: true });
   }
+
+  const mobileShopToggle = document.getElementById("mobile-shop-toggle");
+  const mobileShopCategories = document.getElementById("mobile-shop-categories");
+  mobileShopToggle?.addEventListener("click", () => {
+    const isOpen = mobileShopCategories?.classList.contains("flex");
+    mobileShopCategories?.classList.toggle("hidden", isOpen);
+    mobileShopCategories?.classList.toggle("flex", !isOpen);
+    mobileShopToggle.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+    mobileShopToggle.setAttribute("aria-expanded", String(!isOpen));
+  });
+
+  const shopDropdownToggle = document.getElementById("shop-dropdown-toggle");
+  const shopDropdownMenu = document.getElementById("shop-dropdown-menu");
+  shopDropdownToggle?.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const isOpen = !shopDropdownMenu?.classList.contains("hidden");
+    shopDropdownMenu?.classList.toggle("hidden", isOpen);
+    shopDropdownToggle.setAttribute("aria-expanded", String(!isOpen));
+    shopDropdownToggle.querySelector("svg")?.classList.toggle("rotate-180", !isOpen);
+  });
+  document.addEventListener("click", (event) => {
+    if (!shopDropdownMenu || shopDropdownMenu.classList.contains("hidden")) return;
+    if (!(event.target instanceof Node)) return;
+    if (shopDropdownToggle?.contains(event.target) || shopDropdownMenu.contains(event.target)) return;
+    shopDropdownMenu.classList.add("hidden");
+    shopDropdownToggle?.setAttribute("aria-expanded", "false");
+    shopDropdownToggle?.querySelector("svg")?.classList.remove("rotate-180");
+  });
 
   function renderCartBadge(count: number) {
     for (const id of ["cart-count", "cart-count-mobile"]) {
