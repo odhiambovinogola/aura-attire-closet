@@ -13,7 +13,7 @@ const primaryImage = product.product_images?.find((img) => img.is_primary) ?? pr
 ---
 
 <a href={`/product/${product.slug}`} class="product-card group block">
-  <div class="product-card-media aspect-[3/4] overflow-hidden rounded-sm bg-blush">
+  <div class="product-card-media relative aspect-[3/4] overflow-hidden rounded-sm bg-blush">
     {primaryImage ? (
       <img
         src={productImageUrl(primaryImage.storage_path)}
@@ -26,6 +26,22 @@ const primaryImage = product.product_images?.find((img) => img.is_primary) ?? pr
         {product.name}
       </div>
     )}
+    <button
+      type="button"
+      class="wishlist-toggle absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-cream/90 text-ink shadow hover:bg-cream"
+      data-wishlist-slug={product.slug}
+      data-wishlist-name={product.name}
+      data-wishlist-price={product.price_kes}
+      data-wishlist-image={primaryImage?.storage_path ?? ""}
+      aria-label="Toggle wishlist"
+    >
+      <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path
+          d="M12 20s-7-4.35-9.5-8.5C.8 8.2 2.4 5 5.6 5c1.8 0 3.2.9 4 2.2C10.4 5.9 11.8 5 13.6 5 16.8 5 18.4 8.2 21.5 11.5 19 15.65 12 20 12 20z"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
   </div>
 
   <h3 class="mt-3 text-sm font-medium text-ink transition-colors group-hover:text-gold">{product.name}</h3>
@@ -43,3 +59,31 @@ const primaryImage = product.product_images?.find((img) => img.is_primary) ?? pr
     </div>
   )}
 </a>
+
+<script>
+  import { wishlistItems, toggleWishlist } from "../lib/wishlist";
+
+  function syncButtons() {
+    const slugs = new Set(wishlistItems.get().map((item) => item.productSlug));
+    document.querySelectorAll<HTMLButtonElement>(".wishlist-toggle").forEach((button) => {
+      const isActive = slugs.has(button.dataset.wishlistSlug ?? "");
+      button.classList.toggle("text-gold", isActive);
+      button.querySelector("svg")?.setAttribute("fill", isActive ? "currentColor" : "none");
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".wishlist-toggle").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      toggleWishlist({
+        productSlug: button.dataset.wishlistSlug ?? "",
+        name: button.dataset.wishlistName ?? "",
+        priceKes: Number(button.dataset.wishlistPrice ?? 0),
+        imagePath: button.dataset.wishlistImage || undefined,
+      });
+    });
+  });
+
+  wishlistItems.subscribe(syncButtons);
+</script>

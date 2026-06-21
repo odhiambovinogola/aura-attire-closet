@@ -83,7 +83,26 @@ const averageRating = reviews.length
         </div>
 
         <div>
-          <h1 class="font-[family-name:var(--font-display)] text-2xl font-bold">{product.name}</h1>
+          <div class="flex items-start justify-between gap-3">
+            <h1 class="font-[family-name:var(--font-display)] text-2xl font-bold">{product.name}</h1>
+            <button
+              type="button"
+              id="wishlist-toggle"
+              data-wishlist-slug={product.slug}
+              data-wishlist-name={product.name}
+              data-wishlist-price={product.price_kes}
+              data-wishlist-image={primaryImage?.storage_path ?? ""}
+              aria-label="Toggle wishlist"
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-gold-light hover:bg-blush"
+            >
+              <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path
+                  d="M12 20s-7-4.35-9.5-8.5C.8 8.2 2.4 5 5.6 5c1.8 0 3.2.9 4 2.2C10.4 5.9 11.8 5 13.6 5 16.8 5 18.4 8.2 21.5 11.5 19 15.65 12 20 12 20z"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+          </div>
           <p class="mt-2 text-lg font-semibold text-gold">{formatKES(product.price_kes)}</p>
 
           {product.description ? (
@@ -226,6 +245,29 @@ const averageRating = reviews.length
 
 <script>
   import { addToCart } from "../../lib/cart";
+  import { wishlistItems, toggleWishlist, isWishlisted } from "../../lib/wishlist";
+
+  const wishlistButton = document.getElementById("wishlist-toggle") as HTMLButtonElement | null;
+
+  function syncWishlistButton() {
+    if (!wishlistButton) return;
+    const active = isWishlisted(wishlistButton.dataset.wishlistSlug ?? "");
+    wishlistButton.classList.toggle("text-gold", active);
+    wishlistButton.classList.toggle("border-gold", active);
+    wishlistButton.querySelector("svg")?.setAttribute("fill", active ? "currentColor" : "none");
+  }
+
+  wishlistButton?.addEventListener("click", () => {
+    toggleWishlist({
+      productSlug: wishlistButton.dataset.wishlistSlug ?? "",
+      name: wishlistButton.dataset.wishlistName ?? "",
+      priceKes: Number(wishlistButton.dataset.wishlistPrice ?? 0),
+      imagePath: wishlistButton.dataset.wishlistImage || undefined,
+    });
+  });
+
+  syncWishlistButton();
+  wishlistItems.subscribe(syncWishlistButton);
 
   const colourChipsEl = document.getElementById("colour-chips");
   const sizeChipsEl = document.getElementById("size-chips");

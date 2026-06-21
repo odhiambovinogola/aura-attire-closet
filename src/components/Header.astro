@@ -48,6 +48,12 @@ const navItems = [
           </svg>
         </button>
       </form>
+      <a href="/wishlist" aria-label="View wishlist" class="relative flex h-9 w-9 items-center justify-center hover:text-gold">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 20s-7-4.35-9.5-8.5C.8 8.2 2.4 5 5.6 5c1.8 0 3.2.9 4 2.2C10.4 5.9 11.8 5 13.6 5 16.8 5 18.4 8.2 21.5 11.5 19 15.65 12 20 12 20z" stroke-linejoin="round" />
+        </svg>
+        <span id="wishlist-count" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-cream">0</span>
+      </a>
       <a href="/cart" aria-label="View cart" class="relative flex h-9 w-9 items-center justify-center hover:text-gold">
         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
           <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" stroke-linecap="round" stroke-linejoin="round" />
@@ -59,6 +65,12 @@ const navItems = [
     </nav>
 
     <div class="flex items-center gap-3 sm:hidden">
+      <a href="/wishlist" aria-label="View wishlist" class="relative flex h-10 w-10 items-center justify-center">
+        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 20s-7-4.35-9.5-8.5C.8 8.2 2.4 5 5.6 5c1.8 0 3.2.9 4 2.2C10.4 5.9 11.8 5 13.6 5 16.8 5 18.4 8.2 21.5 11.5 19 15.65 12 20 12 20z" stroke-linejoin="round" />
+        </svg>
+        <span id="wishlist-count-mobile" class="absolute -right-1 -top-1 hidden h-4 min-w-4 items-center justify-center rounded-full bg-gold px-1 text-[10px] font-semibold text-cream">0</span>
+      </a>
       <a href="/cart" aria-label="View cart" class="relative flex h-10 w-10 items-center justify-center">
         <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.6">
           <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L20 8H6" stroke-linecap="round" stroke-linejoin="round" />
@@ -101,6 +113,7 @@ const navItems = [
 
 <script>
   import { cartItems, cartCount } from "../lib/cart";
+  import { wishlistItems } from "../lib/wishlist";
 
   const header = document.querySelector<HTMLElement>("header[data-transparent]");
   const toggle = document.getElementById("nav-toggle");
@@ -144,6 +157,18 @@ const navItems = [
   }
 
   cartItems.subscribe((items) => renderCartBadge(cartCount(items)));
+
+  function renderWishlistBadge(count: number) {
+    for (const id of ["wishlist-count", "wishlist-count-mobile"]) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.textContent = String(count);
+      el.classList.toggle("hidden", count === 0);
+      el.classList.toggle("flex", count > 0);
+    }
+  }
+
+  wishlistItems.subscribe((items) => renderWishlistBadge(items.length));
 
   const searchToggle = document.getElementById("search-toggle");
   const searchInput = document.getElementById("search-input");
