@@ -58,11 +58,12 @@ const { id } = Astro.params;
       </div>
 
       <div>
-        <label for="image" class="block text-sm text-ink/70">Add a photo</label>
-        <input id="image" name="image" type="file" accept="image/*"
+        <label for="image" class="block text-sm text-ink/70">Add photos</label>
+        <input id="image" name="image" type="file" accept="image/*" multiple
           class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
         <p id="image-status" class="mt-1 text-xs text-ink/50"></p>
-        <div id="existing-images" class="mt-3 flex flex-wrap gap-2"></div>
+        <p class="mt-3 text-xs text-ink/50">Click a photo to set it as the main image, or remove it.</p>
+        <div id="existing-images" class="mt-2 flex flex-wrap gap-3"></div>
       </div>
 
       <button type="submit" class="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
@@ -78,7 +79,11 @@ const { id } = Astro.params;
   import { requireSession } from "../../../lib/admin-auth";
   import { slugify } from "../../../lib/format";
   import { productImageUrl } from "../../../lib/images";
+  import { showToast } from "../../../lib/toast";
+  import { confirmAction } from "../../../lib/dialog";
   import imageCompression from "browser-image-compression";
+
+  type ProductImage = { id: string; storage_path: string; is_primary: boolean };
 
   const form = document.getElementById("product-form") as HTMLFormElement;
   const productId = form.dataset.productId ?? "new";
@@ -100,18 +105,79 @@ const { id } = Astro.params;
     }
   }
 
-  function renderExistingImages(images: { id: string; storage_path: string; is_primary: boolean }[]) {
+  function renderExistingImages(images: ProductImage[]) {
     if (!existingImagesEl) return;
     existingImagesEl.innerHTML = "";
     for (const img of images) {
       const wrap = document.createElement("div");
       wrap.className = "relative";
+
       const el = document.createElement("img");
       el.src = productImageUrl(img.storage_path);
-      el.className = `h-20 w-20 rounded-lg object-cover ${img.is_primary ? "ring-2 ring-gold" : ""}`;
-      wrap.appendChild(el);
+      el.className = `h-20 w-20 cursor-pointer rounded-lg object-cover ${img.is_primary ? "ring-2 ring-gold" : ""}`;
+      el.title = img.is_primary ? "Main image" : "Click to set as main image";
+      el.addEventListener("click", () => setPrimaryImage(img.id));
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.title = "Remove photo";
+      removeBtn.className =
+        "absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-[#5c1f16] text-xs text-cream leading-none hover:bg-[#481810]";
+      removeBtn.addEventListener("click", () => deleteImage(img));
+
+      wrap.append(el, removeBtn);
       existingImagesEl.appendChild(wrap);
     }
+  }
+
+  async function refreshImages() {
+    const { data: product } = await supabase
+      .from("products")
+      .select("product_images(*)")
+      .eq("id", productId)
+      .maybeSingle();
+    renderExistingImages((product?.product_images as ProductImage[] | undefined) ?? []);
+  }
+
+  async function setPrimaryImage(imageId: string) {
+    await supabase.from("product_images").update({ is_primary: false }).eq("product_id", productId);
+    const { error } = await supabase.from("product_images").update({ is_primary: true }).eq("id", imageId);
+    if (error) {
+      showToast("Could not update main image", { variant: "error", subtitle: error.message });
+    }
+    await refreshImages();
+  }
+
+  async function deleteImage(img: ProductImage) {
+    const confirmed = await confirmAction({
+      title: "Remove this photo?",
+      confirmLabel: "Remove",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    await supabase.storage.from("product-images").remove([img.storage_path]);
+    const { error } = await supabase.from("product_images").delete().eq("id", img.id);
+    if (error) {
+      showToast("Could not remove photo", { variant: "error", subtitle: error.message });
+      return;
+    }
+
+    if (img.is_primary) {
+      const { data: remaining } = await supabase
+        .from("product_images")
+        .select("id")
+        .eq("product_id", productId)
+        .order("sort_order")
+        .limit(1);
+      if (remaining && remaining.length > 0) {
+        await supabase.from("product_images").update({ is_primary: true }).eq("id", remaining[0].id);
+      }
+    }
+
+    showToast("Photo removed");
+    await refreshImages();
   }
 
   async function init() {
@@ -194,40 +260,48 @@ const { id } = Astro.params;
     }
 
     const fileInput = document.getElementById("image") as HTMLInputElement;
-    const file = fileInput.files?.[0];
-    if (file) {
-      if (imageStatus) imageStatus.textContent = "Compressing image...";
-      const compressed = await imageCompression(file, {
-        maxWidthOrHeight: 1600,
-        maxSizeMB: 0.4,
-        fileType: "image/webp",
-      });
-
+    const files = Array.from(fileInput.files ?? []);
+    if (files.length > 0) {
       const { data: existingImages } = await supabase
         .from("product_images")
         .select("id")
         .eq("product_id", currentId);
-      const isPrimary = !existingImages || existingImages.length === 0;
+      let hasPrimary = (existingImages?.length ?? 0) > 0;
 
-      const storagePath = `${record.slug}/${Date.now()}.webp`;
-      if (imageStatus) imageStatus.textContent = "Uploading image...";
-      const { error: uploadError } = await supabase.storage
-        .from("product-images")
-        .upload(storagePath, compressed, { contentType: "image/webp" });
+      for (let i = 0; i < files.length; i++) {
+        if (imageStatus) imageStatus.textContent = `Compressing photo ${i + 1} of ${files.length}...`;
+        const compressed = await imageCompression(files[i], {
+          maxWidthOrHeight: 1600,
+          maxSizeMB: 0.4,
+          fileType: "image/webp",
+        });
 
-      if (uploadError) {
-        if (imageStatus) imageStatus.textContent = "Image upload failed: " + uploadError.message;
-      } else {
+        const storagePath = `${record.slug}/${Date.now()}-${i}.webp`;
+        if (imageStatus) imageStatus.textContent = `Uploading photo ${i + 1} of ${files.length}...`;
+        const { error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(storagePath, compressed, { contentType: "image/webp" });
+
+        if (uploadError) {
+          showToast(`Photo ${i + 1} failed to upload`, { variant: "error", subtitle: uploadError.message });
+          continue;
+        }
+
         await supabase.from("product_images").insert({
           product_id: currentId,
           storage_path: storagePath,
           alt: record.name,
-          is_primary: isPrimary,
+          is_primary: !hasPrimary,
         });
-        if (imageStatus) imageStatus.textContent = "Image uploaded.";
+        hasPrimary = true;
       }
+
+      if (imageStatus) imageStatus.textContent = "";
+      fileInput.value = "";
+      if (!isNew) await refreshImages();
     }
 
+    showToast("Product saved");
     if (formStatus) {
       formStatus.textContent = "Saved.";
       formStatus.classList.remove("hidden");
