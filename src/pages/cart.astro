@@ -97,6 +97,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   import { cartItems, updateQuantity, removeFromCart, cartTotalKes, clearCart, type CartItem } from "../lib/cart";
   import { formatKES } from "../lib/format";
   import { buildOrderWhatsAppUrl } from "../lib/whatsapp";
+  import { showToast } from "../lib/toast";
 
   type Step = "review" | "delivery" | "confirm";
   let step: Step = "review";
@@ -210,7 +211,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   document.getElementById("to-confirm")?.addEventListener("click", () => {
     const selected = document.querySelector<HTMLInputElement>('input[name="delivery"]:checked');
     if (!selected) {
-      alert("Please choose a delivery option.");
+      showToast("Please select a delivery option", { variant: "error" });
       return;
     }
     deliveryOption = selected.value;
