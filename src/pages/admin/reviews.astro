@@ -1,0 +1,175 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Admin · Reviews">
+  <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <div class="flex items-center justify-between">
+      <h1 class="font-[family-name:var(--font-display)] text-2xl">Reviews</h1>
+      <a href="/admin" class="text-sm font-semibold underline">&larr; Back to products</a>
+    </div>
+
+    <div id="admin-loading" class="mt-10 text-sm text-ink/50">Checking session&hellip;</div>
+
+    <div id="review-tabs" class="mt-6 hidden flex gap-2">
+      <button type="button" data-tab="pending" class="review-tab rounded-full px-4 py-1.5 text-sm font-semibold">
+        Pending
+      </button>
+      <button type="button" data-tab="approved" class="review-tab rounded-full px-4 py-1.5 text-sm font-semibold">
+        Approved
+      </button>
+    </div>
+
+    <ul id="review-list" class="mt-6 hidden space-y-3"></ul>
+    <p id="review-empty" class="mt-10 hidden text-sm text-ink/50">Nothing here.</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .review-tab {
+    background: var(--color-blush);
+    color: var(--color-ink);
+    opacity: 0.5;
+  }
+  .review-tab[aria-selected="true"] {
+    background: var(--color-ink);
+    color: var(--color-cream);
+    opacity: 1;
+  }
+</style>
+
+<script>
+  import { supabase } from "../../lib/supabase";
+  import { requireSession } from "../../lib/admin-auth";
+  import { showToast } from "../../lib/toast";
+  import { confirmAction } from "../../lib/dialog";
+  import type { Review } from "../../lib/types";
+
+  let allReviews: (Review & { products?: { name: string } | null })[] = [];
+  let activeTab: "pending" | "approved" = "pending";
+
+  function renderStars(rating: number) {
+    return "★".repeat(rating) + "☆".repeat(5 - rating);
+  }
+
+  function render() {
+    const list = document.getElementById("review-list");
+    const empty = document.getElementById("review-empty");
+    if (!list || !empty) return;
+
+    const visible = allReviews.filter((r) => (activeTab === "pending" ? !r.is_approved : r.is_approved));
+
+    list.innerHTML = "";
+    empty.classList.toggle("hidden", visible.length > 0);
+
+    for (const review of visible) {
+      const li = document.createElement("li");
+      li.className = "rounded-lg border border-ink/10 p-4";
+      li.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-sm font-semibold">${review.author_name} <span class="ml-2 text-gold">${renderStars(review.rating)}</span></p>
+            <p class="mt-0.5 text-xs text-ink/50">${review.products?.name ?? "Unknown product"} &middot; ${new Date(review.created_at).toLocaleDateString()}</p>
+            ${review.body ? `<p class="mt-2 text-sm text-ink/80">${review.body}</p>` : ""}
+          </div>
+          <div class="flex shrink-0 gap-2">
+            ${
+              activeTab === "pending"
+                ? `<button type="button" data-approve="${review.id}" class="rounded-full bg-ink px-3 py-1.5 text-xs font-semibold text-cream hover:opacity-90">Approve</button>`
+                : `<button type="button" data-unapprove="${review.id}" class="rounded-full border border-ink/20 px-3 py-1.5 text-xs font-semibold hover:bg-ink/5">Unapprove</button>`
+            }
+            <button type="button" data-delete="${review.id}" class="rounded-full border border-ink/20 px-3 py-1.5 text-xs font-semibold text-ink/60 hover:bg-ink/5">Delete</button>
+          </div>
+        </div>
+      `;
+      list.appendChild(li);
+    }
+
+    list.querySelectorAll<HTMLButtonElement>("[data-approve]").forEach((button) => {
+      button.addEventListener("click", () => setApproval(button.dataset.approve!, true));
+    });
+    list.querySelectorAll<HTMLButtonElement>("[data-unapprove]").forEach((button) => {
+      button.addEventListener("click", () => setApproval(button.dataset.unapprove!, false));
+    });
+    list.querySelectorAll<HTMLButtonElement>("[data-delete]").forEach((button) => {
+      button.addEventListener("click", () => deleteReview(button.dataset.delete!));
+    });
+  }
+
+  async function setApproval(id: string, approve: boolean) {
+    const { error } = await supabase.from("reviews").update({ is_approved: approve }).eq("id", id);
+    if (error) {
+      showToast("Could not update review", { variant: "error", subtitle: error.message });
+      return;
+    }
+    const review = allReviews.find((r) => r.id === id);
+    if (review) review.is_approved = approve;
+    showToast(approve ? "Review approved" : "Review unapproved");
+    render();
+  }
+
+  async function deleteReview(id: string) {
+    const confirmed = await confirmAction({
+      title: "Delete this review?",
+      body: "This can't be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    const { error } = await supabase.from("reviews").delete().eq("id", id);
+    if (error) {
+      showToast("Could not delete review", { variant: "error", subtitle: error.message });
+      return;
+    }
+    allReviews = allReviews.filter((r) => r.id !== id);
+    showToast("Review deleted");
+    render();
+  }
+
+  function updateTabs() {
+    document.querySelectorAll<HTMLButtonElement>(".review-tab").forEach((tab) => {
+      tab.setAttribute("aria-selected", String(tab.dataset.tab === activeTab));
+    });
+  }
+
+  document.querySelectorAll<HTMLButtonElement>(".review-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      activeTab = tab.dataset.tab as "pending" | "approved";
+      updateTabs();
+      render();
+    });
+  });
+
+  async function loadReviews() {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*, products(name)")
+      .order("created_at", { ascending: false });
+
+    document.getElementById("admin-loading")?.classList.add("hidden");
+
+    if (error || !data) {
+      const loading = document.getElementById("admin-loading");
+      if (loading) {
+        loading.textContent = "Could not load reviews.";
+        loading.classList.remove("hidden");
+      }
+      return;
+    }
+
+    allReviews = data;
+    document.getElementById("review-tabs")?.classList.remove("hidden");
+    document.getElementById("review-list")?.classList.remove("hidden");
+    updateTabs();
+    render();
+  }
+
+  async function init() {
+    const session = await requireSession();
+    if (!session) return;
+    await loadReviews();
+  }
+
+  init();
+</script>
