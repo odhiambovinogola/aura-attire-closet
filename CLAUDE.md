@@ -20,3 +20,4 @@ Storefront (catalog, order-via-WhatsApp) for a clothing seller. Astro (server ou
 - Supabase RLS is on and restrictive: anon/public can only read `is_published` products and `is_approved` reviews; all writes require an authenticated (admin) session. New tables/policies should follow this published/approved-only read pattern.
 - Review inserts must default to `is_approved = false` — there is no public path to publish a review unmoderated.
 - No deploy command in this repo — Cloudflare Pages deploys via its own git integration, not a local script.
+- It's a installable PWA (`public/manifest.webmanifest`, `public/sw.js`). The service worker only cache-first's the static brand assets it precaches — never add page/API caching there, since prices/stock/admin data must always come fresh from Supabase.
