@@ -62,6 +62,7 @@ try {
 
       <a href="/about" class="text-sm font-medium tracking-wide hover:text-gold">About</a>
       <a href="/contact" class="text-sm font-medium tracking-wide hover:text-gold">Contact</a>
+      <a id="admin-link" href="/admin" class="hidden text-sm font-medium tracking-wide hover:text-gold">Admin</a>
 
       <form action="/shop" method="get" class="flex items-center">
         <input
@@ -177,11 +178,19 @@ try {
 
     <a href="/about" class="py-2 text-sm font-medium tracking-wide hover:text-gold">About</a>
     <a href="/contact" class="py-2 text-sm font-medium tracking-wide hover:text-gold">Contact</a>
+    <a id="admin-link-mobile" href="/admin" class="hidden py-2 text-sm font-medium tracking-wide hover:text-gold">Admin</a>
 </nav>
 
 <script>
   import { cartItems, cartCount } from "../lib/cart";
   import { wishlistItems } from "../lib/wishlist";
+  import { supabase } from "../lib/supabase";
+
+  supabase.auth.getSession().then(({ data }) => {
+    if (!data.session) return;
+    document.getElementById("admin-link")?.classList.remove("hidden");
+    document.getElementById("admin-link-mobile")?.classList.remove("hidden");
+  });
 
   const header = document.querySelector<HTMLElement>("header[data-transparent]");
   const toggle = document.getElementById("nav-toggle");

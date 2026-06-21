@@ -1,0 +1,57 @@
+<button
+  id="install-app-btn"
+  type="button"
+  aria-label="Install this app"
+  class="fixed bottom-5 left-5 z-50 hidden items-center gap-2 rounded-full bg-ink px-4 py-3 text-sm font-semibold text-cream shadow-lg transition-transform hover:scale-105"
+>
+  <svg viewBox="0 0 24 24" class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8">
+    <path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round" />
+  </svg>
+  <span>Install App</span>
+</button>
+
+<script>
+  import { showToast } from "../lib/toast";
+
+  const btn = document.getElementById("install-app-btn") as HTMLButtonElement;
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as any).MSStream;
+  const isStandalone =
+    window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+
+  if (!isStandalone) {
+    if (isIos) {
+      btn.querySelector("span")!.textContent = "Add to Home Screen";
+      btn.classList.remove("hidden");
+      btn.classList.add("flex");
+      btn.addEventListener("click", () => {
+        showToast("Add to Home Screen", {
+          subtitle: "Tap the Share icon, then \"Add to Home Screen.\"",
+          duration: 6000,
+        });
+      });
+    } else {
+      let deferredPrompt: Event | null = null;
+
+      window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        deferredPrompt = event;
+        btn.classList.remove("hidden");
+        btn.classList.add("flex");
+      });
+
+      btn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        (deferredPrompt as any).prompt();
+        await (deferredPrompt as any).userChoice;
+        deferredPrompt = null;
+        btn.classList.add("hidden");
+        btn.classList.remove("flex");
+      });
+
+      window.addEventListener("appinstalled", () => {
+        btn.classList.add("hidden");
+        btn.classList.remove("flex");
+      });
+    }
+  }
+</script>

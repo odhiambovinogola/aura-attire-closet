@@ -13,15 +13,19 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         <input id="email" name="email" type="email" required
           class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
       </div>
-      <div>
+      <div id="password-field">
         <label for="password" class="block text-sm text-ink/70">Password</label>
         <input id="password" name="password" type="password" required
           class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
       </div>
-      <button type="submit" class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
+      <button id="submit-btn" type="submit" class="w-full rounded-full bg-ink px-6 py-3 text-sm font-semibold text-cream hover:opacity-90">
         Log in
       </button>
+      <button id="forgot-toggle" type="button" class="block text-sm text-ink/60 underline">
+        Forgot password?
+      </button>
       <p id="login-error" class="hidden text-sm text-red-700"></p>
+      <p id="login-status" class="hidden text-sm text-ink/70"></p>
     </form>
   </div>
 </BaseLayout>
@@ -31,13 +35,53 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 
   const form = document.getElementById("login-form") as HTMLFormElement;
   const errorEl = document.getElementById("login-error");
+  const statusEl = document.getElementById("login-status");
+  const passwordField = document.getElementById("password-field") as HTMLInputElement;
+  const passwordInput = document.getElementById("password") as HTMLInputElement;
+  const submitBtn = document.getElementById("submit-btn") as HTMLButtonElement;
+  const forgotToggle = document.getElementById("forgot-toggle") as HTMLButtonElement;
+
+  let mode: "login" | "reset" = "login";
+
+  function setMode(next: "login" | "reset") {
+    mode = next;
+    errorEl?.classList.add("hidden");
+    statusEl?.classList.add("hidden");
+    passwordField.classList.toggle("hidden", mode === "reset");
+    passwordInput.required = mode === "login";
+    submitBtn.textContent = mode === "login" ? "Log in" : "Send reset link";
+    forgotToggle.textContent = mode === "login" ? "Forgot password?" : "Back to login";
+  }
+
+  forgotToggle.addEventListener("click", () => setMode(mode === "login" ? "reset" : "login"));
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
     const email = String(formData.get("email"));
-    const password = String(formData.get("password"));
 
+    errorEl?.classList.add("hidden");
+    statusEl?.classList.add("hidden");
+
+    if (mode === "reset") {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin/reset-password`,
+      });
+      if (error) {
+        if (errorEl) {
+          errorEl.textContent = "Could not send reset link: " + error.message;
+          errorEl.classList.remove("hidden");
+        }
+        return;
+      }
+      if (statusEl) {
+        statusEl.textContent = "Check your email for a reset link.";
+        statusEl.classList.remove("hidden");
+      }
+      return;
+    }
+
+    const password = String(formData.get("password"));
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
