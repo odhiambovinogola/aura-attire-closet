@@ -192,6 +192,7 @@ Every piece is picked with one idea in mind: an endless wardrobe of outfits-of-t
 
 Aura Attire Closet started on WhatsApp and social media, and that personal, message-me-directly feel carries through here — browse the shop, pick your colour and size, and send your order straight to me.',
   instagram_url   text not null default 'https://instagram.com/aura_attire_closet',
+  instagram_followers integer not null default 957, -- only Instagram has a real count; Facebook/TikTok stay link-only until there's real data
   facebook_url    text not null default 'https://facebook.com/StyleWithnash',
   tiktok_url      text not null default '#',
   shop_address    text,                  -- nullable: no confirmed public physical address yet
@@ -204,5 +205,9 @@ Aura Attire Closet started on WhatsApp and social media, and that personal, mess
 alter table site_settings enable row level security;
 create policy "read site settings"   on site_settings for select to anon, authenticated using (true);
 create policy "manage site settings" on site_settings for all    to authenticated using (true) with check (true);
+
+-- 2026-06-21 addition to an already-live site_settings table: run only this line against the
+-- live project (the CREATE TABLE above already includes the column for fresh installs).
+-- alter table site_settings add column if not exists instagram_followers integer not null default 957;
 
 insert into site_settings (id) values (1) on conflict (id) do nothing;

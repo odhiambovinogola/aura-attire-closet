@@ -66,6 +66,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
         </div>
         <div>
+          <label for="instagram_followers" class="block text-sm text-ink/70">Instagram follower count</label>
+          <p class="mt-1 text-xs text-ink/50">Shown on Home/About/Footer. Update it whenever it changes — it doesn't pull live from Instagram.</p>
+          <input id="instagram_followers" name="instagram_followers" type="number" min="0" required
+            class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
+        </div>
+        <div>
           <label for="facebook_url" class="block text-sm text-ink/70">Facebook URL</label>
           <input id="facebook_url" name="facebook_url" type="url" required
             class="mt-1 w-full rounded-lg border border-ink/15 px-3 py-2 text-sm" />
@@ -121,6 +127,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     (document.getElementById("hero_subcopy") as HTMLTextAreaElement).value = settings.hero_subcopy;
     (document.getElementById("about_body") as HTMLTextAreaElement).value = settings.about_body;
     (document.getElementById("instagram_url") as HTMLInputElement).value = settings.instagram_url;
+    (document.getElementById("instagram_followers") as HTMLInputElement).value = String(settings.instagram_followers);
     (document.getElementById("facebook_url") as HTMLInputElement).value = settings.facebook_url;
     (document.getElementById("tiktok_url") as HTMLInputElement).value = settings.tiktok_url;
     (document.getElementById("shop_address") as HTMLInputElement).value = settings.shop_address ?? "";
@@ -182,6 +189,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       hero_subcopy: (document.getElementById("hero_subcopy") as HTMLTextAreaElement).value.trim(),
       about_body: (document.getElementById("about_body") as HTMLTextAreaElement).value.trim(),
       instagram_url: (document.getElementById("instagram_url") as HTMLInputElement).value.trim(),
+      instagram_followers: Number((document.getElementById("instagram_followers") as HTMLInputElement).value),
       facebook_url: (document.getElementById("facebook_url") as HTMLInputElement).value.trim(),
       tiktok_url: (document.getElementById("tiktok_url") as HTMLInputElement).value.trim(),
       shop_address: (document.getElementById("shop_address") as HTMLInputElement).value.trim() || null,

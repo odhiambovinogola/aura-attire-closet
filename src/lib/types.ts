@@ -43,6 +43,7 @@ export interface SiteSettings {
   hero_subcopy: string;
   about_body: string;
   instagram_url: string;
+  instagram_followers: number;
   facebook_url: string;
   tiktok_url: string;
   shop_address: string | null;

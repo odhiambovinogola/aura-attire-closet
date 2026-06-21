@@ -139,7 +139,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
           >
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
           </a>
-          <span class="text-xs text-ink/50">957+ followers</span>
+          <span class="text-xs text-ink/50">{settings.instagram_followers}+ followers</span>
         </div>
       </div>
     </div>
@@ -288,7 +288,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
   <section class="bg-blush px-4 py-16 text-center sm:px-6 sm:py-20" data-reveal>
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Follow the Journey</p>
     <h2 class="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">@aura_attire_closet</h2>
-    <p class="mt-3 text-sm text-taupe">Loved on Instagram by 957+ followers</p>
+    <p class="mt-3 text-sm text-taupe">Loved on Instagram by {settings.instagram_followers}+ followers</p>
     <div class="mt-6 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
       <a
         href="https://instagram.com/aura_attire_closet"

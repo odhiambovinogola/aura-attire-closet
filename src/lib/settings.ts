@@ -9,6 +9,7 @@ const defaults: SiteSettings = {
   about_body:
     "I'm Nash, and Aura Attire Closet is my Nairobi-based closet of elegant dresses, two-piece sets, jumpsuits, bags and shoes — curating since 2024, with customers all across Kenya, not just Nairobi.\n\nEvery piece is picked with one idea in mind: an endless wardrobe of outfits-of-the-day for the woman who wants to feel put together without overthinking it. I personally select each item, and you can chat with me directly about sizing, styling, or anything else before you order.\n\nAura Attire Closet started on WhatsApp and social media, and that personal, message-me-directly feel carries through here — browse the shop, pick your colour and size, and send your order straight to me.",
   instagram_url: "https://instagram.com/aura_attire_closet",
+  instagram_followers: 957,
   facebook_url: "https://facebook.com/StyleWithnash",
   tiktok_url: "#",
   shop_address: null,
