@@ -7,6 +7,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     <div class="flex items-center justify-between">
       <h1 class="font-[family-name:var(--font-display)] text-2xl">Products</h1>
       <div class="flex gap-3">
+        <a href="/admin/settings" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5">
+          Site Settings
+        </a>
+        <a href="/admin/reviews" class="rounded-full border border-ink/20 px-4 py-2 text-sm font-semibold hover:bg-ink/5">
+          Reviews
+        </a>
         <a href="/admin/products/new" class="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream hover:opacity-90">
           + New product
         </a>
@@ -34,6 +40,13 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         </button>
       </form>
     </section>
+
+    <input
+      id="product-search"
+      type="search"
+      placeholder="Search products by name or category&hellip;"
+      class="mt-6 hidden w-full max-w-sm rounded-lg border border-ink/15 px-3 py-2 text-sm"
+    />
 
     <table id="product-table" class="mt-8 hidden w-full text-left text-sm">
       <thead>
@@ -152,9 +165,78 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     await loadCategoryPanel();
   });
 
+  let allProducts: Array<Record<string, any>> = [];
+  let categoryNameById = new Map<string, string>();
+
+  function renderRows(filter: string) {
+    const rows = document.getElementById("product-rows");
+    if (!rows) return;
+
+    const needle = filter.trim().toLowerCase();
+    const visible = needle
+      ? allProducts.filter((product) => {
+          const categoryName = categoryNameById.get(product.category_id) ?? "";
+          return (
+            product.name.toLowerCase().includes(needle) || categoryName.toLowerCase().includes(needle)
+          );
+        })
+      : allProducts;
+
+    rows.innerHTML = "";
+    for (const product of visible) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="py-3 font-medium">${product.name}</td>
+        <td class="py-3 text-ink/70">${categoryNameById.get(product.category_id) ?? ""}</td>
+        <td class="py-3 text-ink/70">${formatKES(product.price_kes)}</td>
+        <td class="py-3">${product.is_published ? "Yes" : "No"}</td>
+        <td class="py-3">${product.is_featured ? "Yes" : "No"}</td>
+        <td class="py-3 text-right">
+          <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
+          <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="ml-3 text-ink/50 underline">Delete</button>
+        </td>
+      `;
+      rows.appendChild(tr);
+    }
+
+    if (visible.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="py-6 text-center text-ink/50" colspan="6">No products match "${filter}".</td>`;
+      rows.appendChild(tr);
+    }
+
+    rows.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((button) => {
+      button.addEventListener("click", async () => {
+        const id = button.dataset.deleteId!;
+        const name = button.dataset.deleteName ?? "this product";
+        const confirmed = await confirmAction({
+          title: `Delete "${name}"?`,
+          body: "This removes the product and its photos. This can't be undone.",
+          confirmLabel: "Delete",
+          danger: true,
+        });
+        if (!confirmed) return;
+
+        const { data: images } = await supabase.from("product_images").select("storage_path").eq("product_id", id);
+        if (images && images.length > 0) {
+          await supabase.storage.from("product-images").remove(images.map((img) => img.storage_path));
+        }
+
+        const { error: deleteError } = await supabase.from("products").delete().eq("id", id);
+        if (deleteError) {
+          showToast("Could not delete product", { variant: "error", subtitle: deleteError.message });
+        } else {
+          showToast("Product deleted");
+          await loadProducts();
+          await loadCategoryPanel();
+        }
+      });
+    });
+  }
+
   async function loadProducts() {
     const { data: categories } = await supabase.from("categories").select("id, name");
-    const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
+    categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
 
     const { data: products, error } = await supabase
       .from("products")
@@ -172,63 +254,23 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return;
     }
 
+    allProducts = products;
+
     productCountByCategory = new Map();
     for (const product of products) {
       productCountByCategory.set(product.category_id, (productCountByCategory.get(product.category_id) ?? 0) + 1);
     }
 
-    const rows = document.getElementById("product-rows");
-    const table = document.getElementById("product-table");
-    table?.classList.remove("hidden");
+    document.getElementById("product-table")?.classList.remove("hidden");
+    document.getElementById("product-search")?.classList.remove("hidden");
     document.getElementById("category-panel")?.classList.remove("hidden");
 
-    if (rows) {
-      rows.innerHTML = "";
-      for (const product of products) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td class="py-3 font-medium">${product.name}</td>
-          <td class="py-3 text-ink/70">${categoryNameById.get(product.category_id) ?? ""}</td>
-          <td class="py-3 text-ink/70">${formatKES(product.price_kes)}</td>
-          <td class="py-3">${product.is_published ? "Yes" : "No"}</td>
-          <td class="py-3">${product.is_featured ? "Yes" : "No"}</td>
-          <td class="py-3 text-right">
-            <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
-            <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="ml-3 text-ink/50 underline">Delete</button>
-          </td>
-        `;
-        rows.appendChild(tr);
-      }
-
-      rows.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((button) => {
-        button.addEventListener("click", async () => {
-          const id = button.dataset.deleteId!;
-          const name = button.dataset.deleteName ?? "this product";
-          const confirmed = await confirmAction({
-            title: `Delete "${name}"?`,
-            body: "This removes the product and its photos. This can't be undone.",
-            confirmLabel: "Delete",
-            danger: true,
-          });
-          if (!confirmed) return;
-
-          const { data: images } = await supabase.from("product_images").select("storage_path").eq("product_id", id);
-          if (images && images.length > 0) {
-            await supabase.storage.from("product-images").remove(images.map((img) => img.storage_path));
-          }
-
-          const { error: deleteError } = await supabase.from("products").delete().eq("id", id);
-          if (deleteError) {
-            showToast("Could not delete product", { variant: "error", subtitle: deleteError.message });
-          } else {
-            showToast("Product deleted");
-            await loadProducts();
-            await loadCategoryPanel();
-          }
-        });
-      });
-    }
+    renderRows((document.getElementById("product-search") as HTMLInputElement | null)?.value ?? "");
   }
+
+  document.getElementById("product-search")?.addEventListener("input", (event) => {
+    renderRows((event.target as HTMLInputElement).value);
+  });
 
   async function init() {
     const session = await requireSession();
