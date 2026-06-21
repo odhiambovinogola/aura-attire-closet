@@ -22,3 +22,4 @@ Storefront (catalog, order-via-WhatsApp) for a clothing seller. Astro (server ou
 - No deploy command in this repo — Cloudflare Pages deploys via its own git integration, not a local script.
 - It's a installable PWA (`public/manifest.webmanifest`, `public/sw.js`). The service worker only cache-first's the static brand assets it precaches — never add page/API caching there, since prices/stock/admin data must always come fresh from Supabase.
 - Never use `alert()`/`confirm()` — use `showToast()` (`src/lib/toast.ts`) and `confirmAction()` (`src/lib/dialog.ts`) so notifications match the site's design.
+- Deleting a product or a product photo in the admin must also remove its file(s) from the `product-images` Storage bucket, not just the DB row — orphaned files quietly eat the free-tier storage quota.

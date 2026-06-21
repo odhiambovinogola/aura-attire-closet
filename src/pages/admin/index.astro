@@ -192,10 +192,41 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           <td class="py-3 text-ink/70">${formatKES(product.price_kes)}</td>
           <td class="py-3">${product.is_published ? "Yes" : "No"}</td>
           <td class="py-3">${product.is_featured ? "Yes" : "No"}</td>
-          <td class="py-3 text-right"><a href="/admin/products/${product.id}" class="font-medium underline">Edit</a></td>
+          <td class="py-3 text-right">
+            <a href="/admin/products/${product.id}" class="font-medium underline">Edit</a>
+            <button type="button" data-delete-id="${product.id}" data-delete-name="${product.name}" class="ml-3 text-ink/50 underline">Delete</button>
+          </td>
         `;
         rows.appendChild(tr);
       }
+
+      rows.querySelectorAll<HTMLButtonElement>("[data-delete-id]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const id = button.dataset.deleteId!;
+          const name = button.dataset.deleteName ?? "this product";
+          const confirmed = await confirmAction({
+            title: `Delete "${name}"?`,
+            body: "This removes the product and its photos. This can't be undone.",
+            confirmLabel: "Delete",
+            danger: true,
+          });
+          if (!confirmed) return;
+
+          const { data: images } = await supabase.from("product_images").select("storage_path").eq("product_id", id);
+          if (images && images.length > 0) {
+            await supabase.storage.from("product-images").remove(images.map((img) => img.storage_path));
+          }
+
+          const { error: deleteError } = await supabase.from("products").delete().eq("id", id);
+          if (deleteError) {
+            showToast("Could not delete product", { variant: "error", subtitle: deleteError.message });
+          } else {
+            showToast("Product deleted");
+            await loadProducts();
+            await loadCategoryPanel();
+          }
+        });
+      });
     }
   }
 
