@@ -10,8 +10,11 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
 
 <BaseLayout title="Contact" description="Chat with Nash Mbula on WhatsApp, Instagram or Facebook.">
   <div class="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
-    <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">Get in Touch</h1>
+    <div class="relative inline-block">
+      <div class="absolute -left-6 -top-4 -z-10 h-14 w-14 rounded-full bg-gold-light/50"></div>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
+      <h1 class="mt-2 font-[family-name:var(--font-display)] text-4xl font-bold text-ink">Get in Touch</h1>
+    </div>
     <p class="mt-3 text-sm text-taupe">
       WhatsApp is the fastest way to reach me &mdash; for questions, custom requests, or to
       complete an order.
@@ -47,6 +50,7 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
       >
         Facebook
       </a>
+      <a href="#" class="text-gold hover:text-gold-dark">TikTok</a>
     </div>
   </div>
 </BaseLayout>

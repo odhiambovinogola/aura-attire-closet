@@ -2,14 +2,28 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
 
-<BaseLayout title="Cart" description="Review your order and send it to Nash on WhatsApp.">
+<BaseLayout title="Bag" description="Review your order and send it to Nash on WhatsApp.">
   <div class="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-    <h1 class="font-[family-name:var(--font-display)] text-2xl font-bold">Your Order</h1>
+    <div class="relative inline-block">
+      <div class="absolute -left-4 -top-3 -z-10 h-12 w-12 rounded-full bg-gold-light/50"></div>
+      <h1 class="font-[family-name:var(--font-display)] text-3xl font-bold text-ink">Your Order</h1>
+    </div>
 
-    <ol class="mt-4 flex gap-4 text-sm text-taupe">
-      <li data-step-label="review" class="font-semibold text-ink">1. Review</li>
-      <li data-step-label="delivery">2. Delivery</li>
-      <li data-step-label="confirm">3. Confirm</li>
+    <ol class="mt-6 flex items-center">
+      <li data-step-label="review" class="step-item flex items-center gap-2 text-sm font-medium text-taupe">
+        <span data-step-circle class="step-circle flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors">1</span>
+        <span class="hidden sm:inline">Review</span>
+      </li>
+      <span data-step-line class="step-line mx-2 h-px flex-1 bg-gold-light transition-colors sm:mx-3"></span>
+      <li data-step-label="delivery" class="step-item flex items-center gap-2 text-sm font-medium text-taupe">
+        <span data-step-circle class="step-circle flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors">2</span>
+        <span class="hidden sm:inline">Delivery</span>
+      </li>
+      <span data-step-line class="step-line mx-2 h-px flex-1 bg-gold-light transition-colors sm:mx-3"></span>
+      <li data-step-label="confirm" class="step-item flex items-center gap-2 text-sm font-medium text-taupe">
+        <span data-step-circle class="step-circle flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors">3</span>
+        <span class="hidden sm:inline">Confirm</span>
+      </li>
     </ol>
 
     <div id="cart-empty" class="mt-10 hidden rounded-lg bg-blush px-4 py-10 text-center text-sm text-taupe">
@@ -18,8 +32,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <!-- Step 1: Review -->
     <section id="step-review" class="mt-8 hidden">
-      <ul id="cart-lines" class="divide-y divide-gold-light/40"></ul>
-      <p class="mt-4 flex justify-between text-sm font-semibold">
+      <ul id="cart-lines" class="divide-y divide-gold-light/40 rounded-lg border border-gold-light px-4"></ul>
+      <p class="mt-4 flex justify-between rounded-lg bg-blush px-4 py-3 text-base font-semibold">
         <span>Total</span>
         <span id="cart-total"></span>
       </p>
@@ -73,14 +87,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <p class="text-sm text-taupe">
         We'll open WhatsApp with your order details filled in &mdash; just hit send to reach me.
       </p>
-      <ul id="confirm-lines" class="mt-4 divide-y divide-gold-light/40"></ul>
-      <p class="mt-4 flex justify-between text-sm font-semibold">
-        <span>Total</span>
-        <span id="confirm-total"></span>
-      </p>
-      <p class="mt-2 text-sm text-taupe">
-        Delivery: <span id="confirm-delivery" class="font-medium text-ink"></span>
-      </p>
+      <ul id="confirm-lines" class="mt-4 divide-y divide-gold-light/40 rounded-lg border border-gold-light px-4"></ul>
+      <div class="mt-4 space-y-2 rounded-lg bg-blush px-4 py-3">
+        <p class="flex justify-between text-base font-semibold">
+          <span>Total</span>
+          <span id="confirm-total"></span>
+        </p>
+        <p class="flex justify-between text-sm text-taupe">
+          <span>Delivery</span>
+          <span id="confirm-delivery" class="font-medium text-ink"></span>
+        </p>
+      </div>
       <div class="mt-6 flex gap-3">
         <button type="button" id="back-to-delivery" class="w-1/3 rounded-sm border border-gold-light px-6 py-3 text-sm font-semibold hover:bg-blush">
           Back
@@ -100,6 +117,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   import { showToast } from "../lib/toast";
 
   type Step = "review" | "delivery" | "confirm";
+  const stepOrder: Step[] = ["review", "delivery", "confirm"];
   let step: Step = "review";
   let deliveryOption = "";
 
@@ -108,20 +126,45 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     delivery: document.getElementById("step-delivery"),
     confirm: document.getElementById("step-confirm"),
   };
-  const stepLabels = document.querySelectorAll<HTMLElement>("[data-step-label]");
+  const stepItems = document.querySelectorAll<HTMLElement>("[data-step-label]");
+  const stepLines = document.querySelectorAll<HTMLElement>("[data-step-line]");
   const emptyEl = document.getElementById("cart-empty");
+
+  function updateStepIndicator() {
+    const currentIndex = stepOrder.indexOf(step);
+
+    stepItems.forEach((item) => {
+      const index = stepOrder.indexOf(item.dataset.stepLabel as Step);
+      const circle = item.querySelector<HTMLElement>("[data-step-circle]");
+      const isDone = index < currentIndex;
+      const isActive = index === currentIndex;
+
+      item.classList.toggle("text-ink", isActive);
+      item.classList.toggle("text-taupe", !isActive);
+
+      if (circle) {
+        circle.classList.toggle("bg-gold", isActive || isDone);
+        circle.classList.toggle("text-white", isActive || isDone);
+        circle.classList.toggle("bg-blush", !isActive && !isDone);
+        circle.classList.toggle("text-taupe", !isActive && !isDone);
+        circle.classList.toggle("ring-2", isActive);
+        circle.classList.toggle("ring-gold-light", isActive);
+        circle.textContent = isDone ? "✓" : String(index + 1);
+      }
+    });
+
+    stepLines.forEach((line, i) => {
+      line.classList.toggle("bg-gold", i < currentIndex);
+      line.classList.toggle("bg-gold-light", i >= currentIndex);
+    });
+  }
 
   function showStep(next: Step) {
     step = next;
     for (const key of Object.keys(stepSections) as Step[]) {
       stepSections[key]?.classList.toggle("hidden", key !== step);
     }
-    stepLabels.forEach((el) => {
-      const isActive = el.dataset.stepLabel === step;
-      el.classList.toggle("text-ink", isActive);
-      el.classList.toggle("font-semibold", isActive);
-      el.classList.toggle("text-ink/50", !isActive);
-    });
+    updateStepIndicator();
   }
 
   function renderLines(container: HTMLElement, items: readonly CartItem[], withControls: boolean) {
@@ -184,6 +227,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     emptyEl?.classList.toggle("hidden", items.length > 0);
     if (items.length === 0) {
       (["review", "delivery", "confirm"] as Step[]).forEach((s) => stepSections[s]?.classList.add("hidden"));
+      updateStepIndicator();
       return;
     }
     if (stepSections[step] === undefined) return;

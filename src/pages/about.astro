@@ -1,51 +1,96 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { supabase } from "../lib/supabase";
+import { productImageUrl } from "../lib/images";
+import type { ProductImage } from "../lib/types";
 
 export const prerender = true;
+
+let aboutImage: ProductImage | null = null;
+try {
+  const { data } = await supabase
+    .from("products")
+    .select("product_images(*)")
+    .eq("is_published", true)
+    .eq("is_featured", true)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+  const images = (data?.product_images as ProductImage[] | undefined) ?? [];
+  aboutImage = images.find((img) => img.is_primary) ?? images[0] ?? null;
+} catch {
+  aboutImage = null;
+}
 ---
 
 <BaseLayout title="About" description="The story behind Aura Attire Closet — boutique fashion by Nash Mbula, since 2024.">
-  <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Since 2024</p>
-    <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">About Aura Attire Closet</h1>
-    <div class="editorial-rule mt-6 mb-8"></div>
+  <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <div class="grid items-center gap-12 sm:grid-cols-2 sm:gap-10">
+      <div class="text-center sm:text-left">
+        <div class="relative inline-block">
+          <div class="absolute -left-5 -top-4 -z-10 h-14 w-14 rounded-full bg-gold-light/50"></div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Since 2024</p>
+          <h1 class="mt-2 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight text-ink">
+            About Aura Attire Closet
+          </h1>
+        </div>
+        <div class="editorial-rule mt-6 mb-8"></div>
 
-    <div class="space-y-4 text-sm leading-relaxed text-ink/80">
-      <p>
-        I'm Nash, and Aura Attire Closet is my Nairobi-based closet of elegant dresses,
-        two-piece sets, jumpsuits, bags and shoes — curating since 2024, with customers all
-        across Kenya, not just Nairobi.
-      </p>
-      <p>
-        Every piece is picked with one idea in mind: an endless wardrobe of outfits-of-the-day
-        for the woman who wants to feel put together without overthinking it. I personally
-        select each item, and you can chat with me directly about sizing, styling, or anything
-        else before you order.
-      </p>
-      <p>
-        Aura Attire Closet started on WhatsApp and social media, and that personal,
-        message-me-directly feel carries through here — browse the shop, pick your colour and
-        size, and send your order straight to me.
-      </p>
-    </div>
+        <div class="space-y-4 text-sm leading-relaxed text-ink/80">
+          <p>
+            I'm Nash, and Aura Attire Closet is my Nairobi-based closet of elegant dresses,
+            two-piece sets, jumpsuits, bags and shoes — curating since 2024, with customers all
+            across Kenya, not just Nairobi.
+          </p>
+          <p>
+            Every piece is picked with one idea in mind: an endless wardrobe of outfits-of-the-day
+            for the woman who wants to feel put together without overthinking it. I personally
+            select each item, and you can chat with me directly about sizing, styling, or anything
+            else before you order.
+          </p>
+          <p>
+            Aura Attire Closet started on WhatsApp and social media, and that personal,
+            message-me-directly feel carries through here — browse the shop, pick your colour and
+            size, and send your order straight to me.
+          </p>
+        </div>
 
-    <div class="mt-10 flex gap-6 text-sm font-medium">
-      <a
-        href="https://instagram.com/aura_attire_closet"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-gold hover:text-gold-dark"
-      >
-        Instagram &middot; 957 followers
-      </a>
-      <a
-        href="https://facebook.com/StyleWithnash"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-gold hover:text-gold-dark"
-      >
-        Facebook
-      </a>
+        <div class="mt-10 flex justify-center gap-6 text-sm font-medium sm:justify-start">
+          <a
+            href="https://instagram.com/aura_attire_closet"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-gold hover:text-gold-dark"
+          >
+            Instagram &middot; 957 followers
+          </a>
+          <a
+            href="https://facebook.com/StyleWithnash"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-gold hover:text-gold-dark"
+          >
+            Facebook
+          </a>
+          <a href="#" class="text-gold hover:text-gold-dark">TikTok</a>
+        </div>
+      </div>
+
+      <div class="relative mx-auto aspect-[4/5] w-full max-w-sm sm:max-w-none">
+        <div class="absolute -right-5 -top-5 h-32 w-32 rounded-full bg-gold-light/60 sm:-right-8 sm:-top-8 sm:h-48 sm:w-48"></div>
+        {aboutImage ? (
+          <img
+            src={productImageUrl(aboutImage.storage_path)}
+            alt=""
+            class="relative h-full w-full rounded-sm object-cover shadow-xl"
+          />
+        ) : (
+          <div class="relative flex h-full w-full items-center justify-center rounded-sm bg-blush text-sm text-taupe shadow-xl">
+            Aura Attire Closet
+          </div>
+        )}
+        <div class="absolute -bottom-6 -left-6 h-20 w-20 rounded-full border-8 border-cream bg-ink sm:h-24 sm:w-24"></div>
+      </div>
     </div>
   </div>
 </BaseLayout>

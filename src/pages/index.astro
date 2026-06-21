@@ -56,52 +56,89 @@ const heroImage = featured.find((p) => p.product_images?.length)?.product_images
 const photographedCategories = categories.filter((c) => categoryImages[c.id]).slice(0, 3);
 ---
 
-<BaseLayout title="Home" transparentHeader>
+<BaseLayout title="Home">
   <!-- Hero -->
-  <section class="relative overflow-hidden bg-ink px-4 pb-20 pt-28 text-cream sm:px-6 sm:pb-28 sm:pt-36">
-    {heroImage && (
-      <div class="absolute inset-0">
-        <img
-          src={productImageUrl(heroImage.storage_path)}
-          alt=""
-          class="h-full w-full object-cover opacity-50"
-        />
-        <div class="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/40"></div>
+  <section class="relative overflow-hidden bg-cream px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 sm:grid-cols-2 sm:gap-10">
+      <div class="text-center sm:text-left">
+        <p class="animate-fade-up text-xs font-semibold uppercase tracking-[0.2em] text-gold">
+          Aura Attire Closet
+        </p>
+        <h1 class="animate-fade-up mt-4 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.05] text-ink sm:text-6xl">
+          One closet,<br />endless OOTD&rsquo;s.
+        </h1>
+        <p class="animate-fade-up mt-5 max-w-md text-ink/70 sm:mx-0">
+          Elegant dresses, sets, jumpsuits, bags and shoes &mdash; I personally curate every piece. Pick your colour and size, then message me directly on WhatsApp.
+        </p>
+        <div class="animate-fade-up mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
+          <a
+            href="/shop"
+            class="inline-flex items-center justify-center gap-2 rounded-sm bg-gold px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-gold-dark"
+          >
+            Browse the Shop
+          </a>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-2 rounded-sm border border-ink/15 px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-blush"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
+            Chat with Me
+          </a>
+        </div>
+
+        <div class="animate-fade-up mt-6 flex items-center justify-center gap-3 sm:justify-start">
+          <a
+            href="https://instagram.com/aura_attire_closet"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+            class="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink/60 transition-colors hover:border-gold hover:text-gold"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a3.7 3.7 0 0 1-.9 1.38 3.7 3.7 0 0 1-1.38.9c-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.5.01-4.74.07-.96.04-1.48.2-1.82.34-.46.18-.78.39-1.12.73-.34.34-.55.66-.73 1.12-.13.34-.3.86-.34 1.82C3.21 8.5 3.2 8.85 3.2 12s.01 3.5.07 4.74c.04.96.21 1.48.34 1.82.18.46.39.78.73 1.12.34.34.66.55 1.12.73.34.13.86.3 1.82.34 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c.96-.04 1.48-.21 1.82-.34.46-.18.78-.39 1.12-.73.34-.34.55-.66.73-1.12.13-.34.3-.86.34-1.82.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.04-.96-.21-1.48-.34-1.82a2.97 2.97 0 0 0-.73-1.12 2.97 2.97 0 0 0-1.12-.73c-.34-.13-.86-.3-1.82-.34C15.5 4.01 15.15 4 12 4zm0 3.8a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4zm0 1.8a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8zm5.35-2.4a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" /></svg>
+          </a>
+          <a
+            href="https://facebook.com/StyleWithnash"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Facebook"
+            class="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink/60 transition-colors hover:border-gold hover:text-gold"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.2c0-.87.24-1.46 1.5-1.46H16.5V4.14C16.07 4.1 14.97 4 13.7 4 11.07 4 9.5 5.49 9.5 8v2.5H7v3h2.5V21h4z" /></svg>
+          </a>
+          <a
+            href="#"
+            aria-label="TikTok"
+            class="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink/60 transition-colors hover:border-gold hover:text-gold"
+          >
+            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
+          </a>
+          <span class="text-xs text-ink/50">957+ followers</span>
+        </div>
       </div>
-    )}
-    <div class="relative mx-auto max-w-2xl text-center sm:text-left">
-      <p class="animate-fade-up text-xs font-semibold uppercase tracking-[0.2em] text-gold-light">
-        Aura Attire Closet
-      </p>
-      <h1 class="animate-fade-up mt-4 font-[family-name:var(--font-display)] text-4xl font-bold leading-tight sm:text-5xl">
-        One closet, endless OOTD&rsquo;s.
-      </h1>
-      <p class="animate-fade-up mt-4 max-w-md text-cream/80 sm:mx-0">
-        Elegant dresses, sets, jumpsuits, bags and shoes &mdash; I personally curate every piece. Pick your colour and size, then message me directly on WhatsApp.
-      </p>
-      <div class="animate-fade-up mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
-        <a
-          href="/shop"
-          class="inline-flex items-center justify-center gap-2 rounded-sm bg-gold px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-gold-dark"
-        >
-          Browse the Shop
-        </a>
-        <a
-          href={whatsappHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="inline-flex items-center justify-center gap-2 rounded-sm border border-white/30 bg-white/10 px-7 py-3.5 text-sm font-semibold backdrop-blur-sm transition-colors hover:bg-white/20"
-        >
-          <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
-          Chat with Me
-        </a>
+
+      <div class="animate-fade-up relative mx-auto aspect-[4/5] w-full max-w-sm sm:max-w-none">
+        <div class="absolute -right-5 -top-5 h-36 w-36 rounded-full bg-gold-light/60 sm:-right-8 sm:-top-8 sm:h-56 sm:w-56"></div>
+        {heroImage ? (
+          <img
+            src={productImageUrl(heroImage.storage_path)}
+            alt=""
+            class="relative h-full w-full rounded-sm object-cover shadow-xl"
+          />
+        ) : (
+          <div class="relative flex h-full w-full items-center justify-center rounded-sm bg-blush text-sm text-taupe shadow-xl">
+            Aura Attire Closet
+          </div>
+        )}
+        <div class="absolute -bottom-6 -left-6 h-24 w-24 rounded-full border-8 border-cream bg-ink sm:h-28 sm:w-28"></div>
       </div>
     </div>
   </section>
 
   {!loadError && photographedCategories.length > 0 && (
     <section class="bg-cream px-4 py-16 sm:px-6 sm:py-20">
-      <div class="mx-auto max-w-6xl">
+      <div class="mx-auto max-w-6xl" data-reveal>
         <div class="flex items-end justify-between gap-4">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Browse by Category</p>
@@ -154,7 +191,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
 
   {!loadError && featured.length > 0 && (
     <section class="bg-blush px-4 py-16 sm:px-6 sm:py-20">
-      <div class="mx-auto max-w-6xl">
+      <div class="mx-auto max-w-6xl" data-reveal>
         <div class="flex items-end justify-between gap-4">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Hand-Picked for You</p>
@@ -183,7 +220,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
 
   <!-- Trust signals -->
   <section class="bg-ink px-4 py-16 sm:px-6 sm:py-20">
-    <div class="mx-auto grid max-w-6xl gap-10 sm:grid-cols-3 sm:gap-8">
+    <div class="mx-auto grid max-w-6xl gap-10 sm:grid-cols-3 sm:gap-8" data-reveal>
       {[
         {
           title: "Personally Curated",
@@ -215,7 +252,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
   </section>
 
   <!-- Social -->
-  <section class="bg-blush px-4 py-16 text-center sm:px-6 sm:py-20">
+  <section class="bg-blush px-4 py-16 text-center sm:px-6 sm:py-20" data-reveal>
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Follow the Journey</p>
     <h2 class="mt-2 font-[family-name:var(--font-display)] text-2xl font-bold sm:text-3xl">@aura_attire_closet</h2>
     <p class="mt-3 text-sm text-taupe">Loved on Instagram by 957+ followers</p>
@@ -238,11 +275,18 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
         <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.2c0-.87.24-1.46 1.5-1.46H16.5V4.14C16.07 4.1 14.97 4 13.7 4 11.07 4 9.5 5.49 9.5 8v2.5H7v3h2.5V21h4z" /></svg>
         Follow on Facebook
       </a>
+      <a
+        href="#"
+        class="inline-flex items-center gap-2 rounded-sm border border-gold px-6 py-2.5 text-sm font-semibold text-gold transition-colors hover:bg-gold hover:text-white"
+      >
+        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z"/></svg>
+        Follow on TikTok
+      </a>
     </div>
   </section>
 
   <!-- WhatsApp CTA -->
-  <section class="relative overflow-hidden bg-gold px-4 py-16 text-center text-white sm:px-6 sm:py-20">
+  <section class="relative overflow-hidden bg-gold px-4 py-16 text-center text-white sm:px-6 sm:py-20" data-reveal>
     <h2 class="font-[family-name:var(--font-display)] text-2xl font-bold sm:text-4xl">
       Your next favourite outfit<br />is one message away.
     </h2>

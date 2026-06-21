@@ -69,8 +69,9 @@ const averageRating = reviews.length
 
     {product && (
       <div class="grid gap-8 sm:grid-cols-2">
-        <div>
-          <div id="gallery" class="relative aspect-[3/4] overflow-hidden rounded-sm bg-blush">
+        <div class="relative">
+          <div class="absolute -right-4 -top-4 -z-10 h-24 w-24 rounded-full bg-gold-light/50 sm:-right-6 sm:-top-6 sm:h-32 sm:w-32"></div>
+          <div id="gallery" class="relative aspect-[3/4] overflow-hidden rounded-sm bg-blush shadow-lg">
             {galleryImages.length > 0 ? (
               galleryImages.map((img, i) => (
                 <img
@@ -208,10 +209,10 @@ const averageRating = reviews.length
             data-price-kes={product.price_kes}
             class="mt-8 w-full rounded-sm bg-gold px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-gold-dark sm:sticky sm:bottom-4"
           >
-            Add to Cart
+            Add to Bag
           </button>
           <p id="add-to-cart-confirm" class="mt-3 hidden text-center text-sm text-taupe">
-            Added to cart. <a href="/cart" class="font-medium text-gold underline">View cart &amp; order &rarr;</a>
+            Added to your bag. <a href="/cart" class="font-medium text-gold underline">View bag &amp; order &rarr;</a>
           </p>
         </div>
       </div>
@@ -286,6 +287,7 @@ const averageRating = reviews.length
 
 <script>
   import { addToCart } from "../../lib/cart";
+  import { showToast } from "../../lib/toast";
   import { wishlistItems, toggleWishlist, isWishlisted } from "../../lib/wishlist";
 
   const wishlistButton = document.getElementById("wishlist-toggle") as HTMLButtonElement | null;
@@ -373,6 +375,9 @@ const averageRating = reviews.length
 
     addToCart({ productSlug, name, colour, size, quantity, priceKes });
     confirmEl?.classList.remove("hidden");
+
+    const sizePart = size ? ` · ${size}` : "";
+    showToast(`${name} added to your bag!`, { subtitle: `${colour}${sizePart} · Qty ${quantity}` });
   });
 
   const reviewForm = document.getElementById("review-form") as HTMLFormElement | null;

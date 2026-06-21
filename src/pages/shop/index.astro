@@ -47,8 +47,11 @@ try {
 
 <BaseLayout title="Shop">
   <div class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
-    <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">Shop the Collection</h1>
+    <div class="relative inline-block">
+      <div class="absolute -left-6 -top-4 -z-10 h-16 w-16 rounded-full bg-gold-light/50"></div>
+      <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
+      <h1 class="mt-2 font-[family-name:var(--font-display)] text-4xl font-bold text-ink">Shop the Collection</h1>
+    </div>
 
     {searchQuery && (
       <p class="mt-4 text-sm text-taupe">
