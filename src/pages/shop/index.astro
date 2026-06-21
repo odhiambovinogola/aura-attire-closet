@@ -6,6 +6,7 @@ import { supabase } from "../../lib/supabase";
 import type { Category, Product } from "../../lib/types";
 
 const activeSlug = Astro.url.searchParams.get("category") ?? undefined;
+const searchQuery = Astro.url.searchParams.get("q")?.trim() || undefined;
 
 let categories: Category[] = [];
 let products: Product[] = [];
@@ -32,6 +33,10 @@ try {
     }
   }
 
+  if (searchQuery) {
+    query = query.ilike("name", `%${searchQuery}%`);
+  }
+
   const { data: productData, error: productError } = await query;
   if (productError) throw productError;
   products = productData ?? [];
@@ -45,6 +50,12 @@ try {
     <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Aura Attire Closet</p>
     <h1 class="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold">Shop the Collection</h1>
 
+    {searchQuery && (
+      <p class="mt-4 text-sm text-taupe">
+        Results for &ldquo;{searchQuery}&rdquo; &mdash; <a href="/shop" class="font-medium text-gold underline">clear search</a>
+      </p>
+    )}
+
     <div class="mt-6">
       <CategoryTabs categories={categories} activeSlug={activeSlug} />
     </div>
@@ -57,7 +68,7 @@ try {
 
     {!loadError && products.length === 0 && (
       <p class="mt-8 rounded-lg bg-blush px-4 py-6 text-sm text-taupe">
-        No items here yet — check back soon.
+        {searchQuery ? `No products match "${searchQuery}".` : "No items here yet — check back soon."}
       </p>
     )}
 
