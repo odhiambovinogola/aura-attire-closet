@@ -36,3 +36,18 @@ export interface Review {
   is_approved: boolean;
   created_at: string;
 }
+
+export interface SiteSettings {
+  id: 1;
+  hero_tagline: string;
+  hero_subcopy: string;
+  about_body: string;
+  instagram_url: string;
+  facebook_url: string;
+  tiktok_url: string;
+  shop_address: string | null;
+  maps_url: string;
+  hero_image_path: string | null;
+  about_image_path: string | null;
+  updated_at: string;
+}

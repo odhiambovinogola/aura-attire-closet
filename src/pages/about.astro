@@ -2,31 +2,35 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { supabase } from "../lib/supabase";
 import { productImageUrl } from "../lib/images";
+import { getSiteSettings } from "../lib/settings";
 import type { ProductImage } from "../lib/types";
 
-export const prerender = true;
+const settings = await getSiteSettings();
+const aboutParagraphs = settings.about_body.split(/\n\s*\n/).filter((p) => p.trim());
 
-let aboutImage: ProductImage | null = null;
-try {
-  const { data } = await supabase
-    .from("products")
-    .select("product_images(*)")
-    .eq("is_published", true)
-    .eq("is_featured", true)
-    .order("sort_order")
-    .limit(1)
-    .maybeSingle();
-  const images = (data?.product_images as ProductImage[] | undefined) ?? [];
-  aboutImage = images.find((img) => img.is_primary) ?? images[0] ?? null;
-} catch {
-  aboutImage = null;
+let aboutImagePath: string | null = settings.about_image_path;
+if (!aboutImagePath) {
+  try {
+    const { data } = await supabase
+      .from("products")
+      .select("product_images(*)")
+      .eq("is_published", true)
+      .eq("is_featured", true)
+      .order("sort_order")
+      .limit(1)
+      .maybeSingle();
+    const images = (data?.product_images as ProductImage[] | undefined) ?? [];
+    aboutImagePath = (images.find((img) => img.is_primary) ?? images[0])?.storage_path ?? null;
+  } catch {
+    aboutImagePath = null;
+  }
 }
 ---
 
 <BaseLayout title="About" description="The story behind Aura Attire Closet — boutique fashion by Nash Mbula, since 2024.">
   <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <div class="grid items-center gap-12 sm:grid-cols-2 sm:gap-10">
-      <div class="text-center sm:text-left">
+    <div class="about-grid gap-7 sm:gap-10">
+      <div class="about-head text-center sm:text-left">
         <div class="relative inline-block">
           <div class="absolute -left-5 -top-4 -z-10 h-14 w-14 rounded-full bg-gold-light/50"></div>
           <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Since 2024</p>
@@ -37,60 +41,60 @@ try {
         <div class="editorial-rule mt-6 mb-8"></div>
 
         <div class="space-y-4 text-sm leading-relaxed text-ink/80">
-          <p>
-            I'm Nash, and Aura Attire Closet is my Nairobi-based closet of elegant dresses,
-            two-piece sets, jumpsuits, bags and shoes — curating since 2024, with customers all
-            across Kenya, not just Nairobi.
-          </p>
-          <p>
-            Every piece is picked with one idea in mind: an endless wardrobe of outfits-of-the-day
-            for the woman who wants to feel put together without overthinking it. I personally
-            select each item, and you can chat with me directly about sizing, styling, or anything
-            else before you order.
-          </p>
-          <p>
-            Aura Attire Closet started on WhatsApp and social media, and that personal,
-            message-me-directly feel carries through here — browse the shop, pick your colour and
-            size, and send your order straight to me.
-          </p>
-        </div>
-
-        <div class="mt-10 flex justify-center gap-6 text-sm font-medium sm:justify-start">
-          <a
-            href="https://instagram.com/aura_attire_closet"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-gold hover:text-gold-dark"
-          >
-            Instagram &middot; 957 followers
-          </a>
-          <a
-            href="https://facebook.com/StyleWithnash"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-gold hover:text-gold-dark"
-          >
-            Facebook
-          </a>
-          <a href="#" class="text-gold hover:text-gold-dark">TikTok</a>
+          {aboutParagraphs.map((paragraph) => <p>{paragraph}</p>)}
         </div>
       </div>
 
-      <div class="relative mx-auto aspect-[4/5] w-full max-w-sm sm:max-w-none">
-        <div class="absolute -right-5 -top-5 h-32 w-32 rounded-full bg-gold-light/60 sm:-right-8 sm:-top-8 sm:h-48 sm:w-48"></div>
-        {aboutImage ? (
+      <div class="about-image relative mx-auto aspect-[4/5] w-full max-w-sm rounded-2xl bg-blush/60 p-3 sm:max-w-none sm:bg-transparent sm:p-0">
+        <div class="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-gold-light/70 sm:-right-8 sm:-top-8 sm:h-48 sm:w-48"></div>
+        {aboutImagePath ? (
           <img
-            src={productImageUrl(aboutImage.storage_path)}
+            src={productImageUrl(aboutImagePath)}
             alt=""
-            class="relative h-full w-full rounded-sm object-cover shadow-xl"
+            class="relative h-full w-full rounded-xl object-cover shadow-xl sm:rounded-sm"
           />
         ) : (
-          <div class="relative flex h-full w-full items-center justify-center rounded-sm bg-blush text-sm text-taupe shadow-xl">
+          <div class="relative flex h-full w-full items-center justify-center rounded-xl bg-blush text-sm text-taupe shadow-xl sm:rounded-sm">
             Aura Attire Closet
           </div>
         )}
-        <div class="absolute -bottom-6 -left-6 h-20 w-20 rounded-full border-8 border-cream bg-ink sm:h-24 sm:w-24"></div>
+        <div class="absolute -bottom-5 -left-5 h-14 w-14 rounded-full border-8 border-cream bg-ink sm:-bottom-6 sm:-left-6 sm:h-24 sm:w-24"></div>
+      </div>
+
+      <div class="about-actions flex justify-center gap-6 text-sm font-medium sm:justify-start">
+        <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" class="text-gold hover:text-gold-dark">
+          Instagram &middot; 957 followers
+        </a>
+        <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" class="text-gold hover:text-gold-dark">
+          Facebook
+        </a>
+        <a href={settings.tiktok_url} class="text-gold hover:text-gold-dark">TikTok</a>
       </div>
     </div>
   </div>
+
+  <style>
+    .about-grid {
+      display: grid;
+      grid-template-areas: "head" "image" "actions";
+      align-items: center;
+    }
+    @media (min-width: 640px) {
+      .about-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "head image" "actions image";
+        column-gap: 2.5rem;
+      }
+    }
+    .about-head {
+      grid-area: head;
+    }
+    .about-image {
+      grid-area: image;
+    }
+    .about-actions {
+      grid-area: actions;
+      margin-top: 0.5rem;
+    }
+  </style>
 </BaseLayout>

@@ -3,11 +3,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ProductCard from "../components/ProductCard.astro";
 import { supabase } from "../lib/supabase";
 import { productImageUrl } from "../lib/images";
+import { getSiteSettings } from "../lib/settings";
 import type { Category, Product, ProductImage } from "../lib/types";
 
 const whatsappNumber = import.meta.env.PUBLIC_WHATSAPP_NUMBER;
 const greeting = encodeURIComponent("Hi Nash! I'd like to browse Aura Attire Closet.");
 const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
+
+const settings = await getSiteSettings();
 
 let categories: Category[] = [];
 let featured: Product[] = [];
@@ -47,8 +50,11 @@ try {
   loadError = err instanceof Error ? err.message : "Could not load the catalogue.";
 }
 
-const heroImage = featured.find((p) => p.product_images?.length)?.product_images?.find((img) => img.is_primary)
-  ?? featured.find((p) => p.product_images?.length)?.product_images?.[0];
+const heroImagePath =
+  settings.hero_image_path ??
+  (featured.find((p) => p.product_images?.length)?.product_images?.find((img) => img.is_primary) ??
+    featured.find((p) => p.product_images?.length)?.product_images?.[0])?.storage_path ??
+  null;
 
 // Home only highlights categories that actually have a photo yet — keeps the
 // homepage from leading with "Coming soon" tiles. Everything is still browsable
@@ -59,18 +65,37 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
 <BaseLayout title="Home">
   <!-- Hero -->
   <section class="relative overflow-hidden bg-cream px-4 pb-16 pt-12 sm:px-6 sm:pb-24 sm:pt-16">
-    <div class="mx-auto grid max-w-6xl items-center gap-12 sm:grid-cols-2 sm:gap-10">
-      <div class="text-center sm:text-left">
+    <div class="hero-grid mx-auto max-w-6xl gap-7 sm:gap-10">
+      <div class="hero-head text-center sm:text-left">
         <p class="animate-fade-up text-xs font-semibold uppercase tracking-[0.2em] text-gold">
           Aura Attire Closet
         </p>
         <h1 class="animate-fade-up mt-4 font-[family-name:var(--font-display)] text-5xl font-bold leading-[1.05] text-ink sm:text-6xl">
-          One closet,<br />endless OOTD&rsquo;s.
+          {settings.hero_tagline}
         </h1>
         <p class="animate-fade-up mt-5 max-w-md text-ink/70 sm:mx-0">
-          Elegant dresses, sets, jumpsuits, bags and shoes &mdash; I personally curate every piece. Pick your colour and size, then message me directly on WhatsApp.
+          {settings.hero_subcopy}
         </p>
-        <div class="animate-fade-up mt-8 flex flex-col gap-3 sm:flex-row sm:justify-start">
+      </div>
+
+      <div class="hero-image animate-fade-up relative mx-auto aspect-[4/5] w-full max-w-sm rounded-2xl bg-blush/60 p-3 sm:max-w-none sm:bg-transparent sm:p-0">
+        <div class="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-gold-light/70 sm:-right-8 sm:-top-8 sm:h-56 sm:w-56"></div>
+        {heroImagePath ? (
+          <img
+            src={productImageUrl(heroImagePath)}
+            alt=""
+            class="relative h-full w-full rounded-xl object-cover shadow-xl sm:rounded-sm"
+          />
+        ) : (
+          <div class="relative flex h-full w-full items-center justify-center rounded-xl bg-blush text-sm text-taupe shadow-xl sm:rounded-sm">
+            Aura Attire Closet
+          </div>
+        )}
+        <div class="absolute -bottom-5 -left-5 h-16 w-16 rounded-full border-8 border-cream bg-ink sm:-bottom-6 sm:-left-6 sm:h-28 sm:w-28"></div>
+      </div>
+
+      <div class="hero-actions text-center sm:text-left">
+        <div class="animate-fade-up flex flex-col gap-3 sm:flex-row sm:justify-start">
           <a
             href="/shop"
             class="inline-flex items-center justify-center gap-2 rounded-sm bg-gold px-7 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-gold-dark"
@@ -90,7 +115,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
 
         <div class="animate-fade-up mt-6 flex items-center justify-center gap-3 sm:justify-start">
           <a
-            href="https://instagram.com/aura_attire_closet"
+            href={settings.instagram_url}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram"
@@ -99,7 +124,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M12 2.2c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23a3.7 3.7 0 0 1-.9 1.38 3.7 3.7 0 0 1-1.38.9c-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.21 15.58 2.2 15.2 2.2 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.21 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.5.01-4.74.07-.96.04-1.48.2-1.82.34-.46.18-.78.39-1.12.73-.34.34-.55.66-.73 1.12-.13.34-.3.86-.34 1.82C3.21 8.5 3.2 8.85 3.2 12s.01 3.5.07 4.74c.04.96.21 1.48.34 1.82.18.46.39.78.73 1.12.34.34.66.55 1.12.73.34.13.86.3 1.82.34 1.24.06 1.59.07 4.74.07s3.5-.01 4.74-.07c.96-.04 1.48-.21 1.82-.34.46-.18.78-.39 1.12-.73.34-.34.55-.66.73-1.12.13-.34.3-.86.34-1.82.06-1.24.07-1.59.07-4.74s-.01-3.5-.07-4.74c-.04-.96-.21-1.48-.34-1.82a2.97 2.97 0 0 0-.73-1.12 2.97 2.97 0 0 0-1.12-.73c-.34-.13-.86-.3-1.82-.34C15.5 4.01 15.15 4 12 4zm0 3.8a4.2 4.2 0 1 1 0 8.4 4.2 4.2 0 0 1 0-8.4zm0 1.8a2.4 2.4 0 1 0 0 4.8 2.4 2.4 0 0 0 0-4.8zm5.35-2.4a1 1 0 1 1-2 0 1 1 0 0 1 2 0z" /></svg>
           </a>
           <a
-            href="https://facebook.com/StyleWithnash"
+            href={settings.facebook_url}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Facebook"
@@ -108,7 +133,7 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
             <svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor"><path d="M13.5 21v-7.5h2.5l.5-3h-3V8.2c0-.87.24-1.46 1.5-1.46H16.5V4.14C16.07 4.1 14.97 4 13.7 4 11.07 4 9.5 5.49 9.5 8v2.5H7v3h2.5V21h4z" /></svg>
           </a>
           <a
-            href="#"
+            href={settings.tiktok_url}
             aria-label="TikTok"
             class="flex h-9 w-9 items-center justify-center rounded-full border border-ink/15 text-ink/60 transition-colors hover:border-gold hover:text-gold"
           >
@@ -117,24 +142,32 @@ const photographedCategories = categories.filter((c) => categoryImages[c.id]).sl
           <span class="text-xs text-ink/50">957+ followers</span>
         </div>
       </div>
-
-      <div class="animate-fade-up relative mx-auto aspect-[4/5] w-full max-w-sm sm:max-w-none">
-        <div class="absolute -right-5 -top-5 h-36 w-36 rounded-full bg-gold-light/60 sm:-right-8 sm:-top-8 sm:h-56 sm:w-56"></div>
-        {heroImage ? (
-          <img
-            src={productImageUrl(heroImage.storage_path)}
-            alt=""
-            class="relative h-full w-full rounded-sm object-cover shadow-xl"
-          />
-        ) : (
-          <div class="relative flex h-full w-full items-center justify-center rounded-sm bg-blush text-sm text-taupe shadow-xl">
-            Aura Attire Closet
-          </div>
-        )}
-        <div class="absolute -bottom-6 -left-6 h-24 w-24 rounded-full border-8 border-cream bg-ink sm:h-28 sm:w-28"></div>
-      </div>
     </div>
   </section>
+
+  <style>
+    .hero-grid {
+      display: grid;
+      grid-template-areas: "head" "image" "actions";
+      align-items: center;
+    }
+    @media (min-width: 640px) {
+      .hero-grid {
+        grid-template-columns: 1fr 1fr;
+        grid-template-areas: "head image" "actions image";
+        column-gap: 2.5rem;
+      }
+    }
+    .hero-head {
+      grid-area: head;
+    }
+    .hero-image {
+      grid-area: image;
+    }
+    .hero-actions {
+      grid-area: actions;
+    }
+  </style>
 
   {!loadError && photographedCategories.length > 0 && (
     <section class="bg-cream px-4 py-16 sm:px-6 sm:py-20">

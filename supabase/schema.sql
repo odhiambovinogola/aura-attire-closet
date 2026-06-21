@@ -176,3 +176,33 @@ insert into products (name, slug, category_id, price_kes, colours, sort_order) v
   ('Woven Shoulder Bag (Beige)', 'woven-shoulder-bag-beige',
     (select id from categories where slug = 'bags'),
     1400, array['Black', 'Olive Green', 'Grey', 'Amber Brown'], 2);
+
+-- Site settings (2026-06-21 addition): a single editable row backing the hero/about copy,
+-- hero/about image overrides, and social links — previously hardcoded and duplicated across
+-- Home/About/Contact/Footer. NOTE: this is the only new block in this file as of this addition —
+-- run just this "site_settings" section against the live project (NOT the whole schema.sql,
+-- which is a from-scratch bootstrap and isn't safe to re-run against an already-seeded DB).
+create table site_settings (
+  id              smallint primary key default 1 check (id = 1),  -- singleton row
+  hero_tagline    text not null default 'One closet, endless OOTD''s.',
+  hero_subcopy    text not null default 'Elegant dresses, sets, jumpsuits, bags and shoes — I personally curate every piece. Pick your colour and size, then message me directly on WhatsApp.',
+  about_body      text not null default 'I''m Nash, and Aura Attire Closet is my Nairobi-based closet of elegant dresses, two-piece sets, jumpsuits, bags and shoes — curating since 2024, with customers all across Kenya, not just Nairobi.
+
+Every piece is picked with one idea in mind: an endless wardrobe of outfits-of-the-day for the woman who wants to feel put together without overthinking it. I personally select each item, and you can chat with me directly about sizing, styling, or anything else before you order.
+
+Aura Attire Closet started on WhatsApp and social media, and that personal, message-me-directly feel carries through here — browse the shop, pick your colour and size, and send your order straight to me.',
+  instagram_url   text not null default 'https://instagram.com/aura_attire_closet',
+  facebook_url    text not null default 'https://facebook.com/StyleWithnash',
+  tiktok_url      text not null default '#',
+  shop_address    text,                  -- nullable: no confirmed public physical address yet
+  maps_url        text not null default '#', -- placeholder until Nash supplies a real Google Maps link
+  hero_image_path text,  -- nullable: null = auto-pick a featured product photo, as before
+  about_image_path text, -- nullable: same auto-pick fallback
+  updated_at      timestamptz not null default now()
+);
+
+alter table site_settings enable row level security;
+create policy "read site settings"   on site_settings for select to anon, authenticated using (true);
+create policy "manage site settings" on site_settings for all    to authenticated using (true) with check (true);
+
+insert into site_settings (id) values (1) on conflict (id) do nothing;

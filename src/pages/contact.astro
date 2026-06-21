@@ -1,11 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-
-export const prerender = true;
+import { getSiteSettings } from "../lib/settings";
 
 const whatsappNumber = import.meta.env.PUBLIC_WHATSAPP_NUMBER;
 const greeting = encodeURIComponent("Hi Nash! I have a question about Aura Attire Closet.");
 const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
+const settings = await getSiteSettings();
 ---
 
 <BaseLayout title="Contact" description="Chat with Nash Mbula on WhatsApp, Instagram or Facebook.">
@@ -34,23 +34,28 @@ const whatsappHref = `https://wa.me/${whatsappNumber}?text=${greeting}`;
     </p>
 
     <div class="mt-4 flex justify-center gap-6 text-sm font-medium">
-      <a
-        href="https://instagram.com/aura_attire_closet"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-gold hover:text-gold-dark"
-      >
+      <a href={settings.instagram_url} target="_blank" rel="noopener noreferrer" class="text-gold hover:text-gold-dark">
         Instagram
       </a>
-      <a
-        href="https://facebook.com/StyleWithnash"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-gold hover:text-gold-dark"
-      >
+      <a href={settings.facebook_url} target="_blank" rel="noopener noreferrer" class="text-gold hover:text-gold-dark">
         Facebook
       </a>
-      <a href="#" class="text-gold hover:text-gold-dark">TikTok</a>
+      <a href={settings.tiktok_url} class="text-gold hover:text-gold-dark">TikTok</a>
     </div>
+
+    {settings.shop_address && (
+      <div class="mt-10 border-t border-gold-light/40 pt-8">
+        <p class="text-sm text-taupe">Prefer to visit in person?</p>
+        <p class="mt-1 text-sm font-medium text-ink">{settings.shop_address}</p>
+        <a
+          href={settings.maps_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-gold hover:text-gold-dark"
+        >
+          Get Directions on Google Maps &rarr;
+        </a>
+      </div>
+    )}
   </div>
 </BaseLayout>
