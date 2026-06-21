@@ -23,3 +23,7 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# internal client docs — repo is public, brief stays private
+project-brief.md
+*-project-brief.md
