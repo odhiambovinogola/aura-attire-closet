@@ -85,6 +85,7 @@ supabase/
 
 ## Status
 
-Stage 6 (Build) complete — storefront (catalog, cart, wishlist, reviews, WhatsApp ordering),
+v1 complete and handed off — storefront (catalog, cart, wishlist, reviews, WhatsApp ordering),
 PWA install, and admin (product/category CRUD, review moderation, site settings, auth with
-password reset) are all live and deployed. Heading into Stage 7 (QA).
+password reset) are all live and deployed. QA passed, no open fails. v2 (online payment,
+flash sales, analytics, product video) is future paid work, not started.
