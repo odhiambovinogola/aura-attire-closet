@@ -17,6 +17,24 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     </div>
 
     <div id="admin-loading" class="mt-10 text-sm text-ink/50">Checking session&hellip;</div>
+
+    <section id="category-panel" class="mt-8 hidden rounded-lg border border-gold-light p-4">
+      <p class="text-sm font-semibold">Categories</p>
+      <ul id="category-rows" class="mt-3 space-y-2"></ul>
+      <form id="category-add-form" class="mt-3 flex gap-2">
+        <input
+          id="new-category-name"
+          type="text"
+          placeholder="New category name"
+          required
+          class="flex-1 rounded-lg border border-ink/15 px-3 py-2 text-sm"
+        />
+        <button type="submit" class="rounded-full bg-ink px-4 py-2 text-sm font-semibold text-cream hover:opacity-90">
+          Add
+        </button>
+      </form>
+    </section>
+
     <table id="product-table" class="mt-8 hidden w-full text-left text-sm">
       <thead>
         <tr class="border-b border-ink/10 text-ink/50">
@@ -37,13 +55,104 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   import { supabase } from "../../lib/supabase";
   import { requireSession, logout } from "../../lib/admin-auth";
   import { formatKES } from "../../lib/format";
+  import { slugify } from "../../lib/format";
+  import { showToast } from "../../lib/toast";
+  import { confirmAction } from "../../lib/dialog";
 
   document.getElementById("logout")?.addEventListener("click", logout);
 
-  async function init() {
-    const session = await requireSession();
-    if (!session) return;
+  let productCountByCategory = new Map<string, number>();
 
+  async function loadCategoryPanel() {
+    const { data: categories, error } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .order("sort_order");
+
+    const rowsEl = document.getElementById("category-rows");
+    if (error || !categories || !rowsEl) return;
+
+    rowsEl.innerHTML = "";
+    for (const category of categories) {
+      const count = productCountByCategory.get(category.id) ?? 0;
+      const li = document.createElement("li");
+      li.className = "flex items-center gap-2";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.value = category.name;
+      input.className = "flex-1 rounded-lg border border-ink/15 px-3 py-1.5 text-sm";
+
+      input.addEventListener("change", async () => {
+        const name = input.value.trim();
+        if (!name || name === category.name) {
+          input.value = category.name;
+          return;
+        }
+        const { error: renameError } = await supabase
+          .from("categories")
+          .update({ name, slug: slugify(name) })
+          .eq("id", category.id);
+        if (renameError) {
+          showToast("Could not rename category", { variant: "error", subtitle: renameError.message });
+          input.value = category.name;
+        } else {
+          showToast("Category renamed");
+          category.name = name;
+          await loadProducts();
+        }
+      });
+
+      const countEl = document.createElement("span");
+      countEl.className = "w-20 shrink-0 text-right text-xs text-ink/50";
+      countEl.textContent = `${count} item${count === 1 ? "" : "s"}`;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.className = "shrink-0 text-xs text-ink/50 underline disabled:cursor-not-allowed disabled:opacity-40";
+      deleteBtn.disabled = count > 0;
+      deleteBtn.title = count > 0 ? "Move or delete its products first" : "";
+      deleteBtn.addEventListener("click", async () => {
+        const confirmed = await confirmAction({
+          title: `Delete "${category.name}"?`,
+          body: "This category has no products. This can't be undone.",
+          confirmLabel: "Delete",
+          danger: true,
+        });
+        if (!confirmed) return;
+
+        const { error: deleteError } = await supabase.from("categories").delete().eq("id", category.id);
+        if (deleteError) {
+          showToast("Could not delete category", { variant: "error", subtitle: deleteError.message });
+        } else {
+          showToast("Category deleted");
+          await loadCategoryPanel();
+        }
+      });
+
+      li.append(input, countEl, deleteBtn);
+      rowsEl.appendChild(li);
+    }
+  }
+
+  document.getElementById("category-add-form")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const input = document.getElementById("new-category-name") as HTMLInputElement;
+    const name = input.value.trim();
+    if (!name) return;
+
+    const { error } = await supabase.from("categories").insert({ name, slug: slugify(name) });
+    if (error) {
+      showToast("Could not add category", { variant: "error", subtitle: error.message });
+      return;
+    }
+    input.value = "";
+    showToast("Category added");
+    await loadCategoryPanel();
+  });
+
+  async function loadProducts() {
     const { data: categories } = await supabase.from("categories").select("id, name");
     const categoryNameById = new Map((categories ?? []).map((c) => [c.id, c.name]));
 
@@ -63,9 +172,15 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
       return;
     }
 
+    productCountByCategory = new Map();
+    for (const product of products) {
+      productCountByCategory.set(product.category_id, (productCountByCategory.get(product.category_id) ?? 0) + 1);
+    }
+
     const rows = document.getElementById("product-rows");
     const table = document.getElementById("product-table");
     table?.classList.remove("hidden");
+    document.getElementById("category-panel")?.classList.remove("hidden");
 
     if (rows) {
       rows.innerHTML = "";
@@ -82,6 +197,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         rows.appendChild(tr);
       }
     }
+  }
+
+  async function init() {
+    const session = await requireSession();
+    if (!session) return;
+
+    await loadProducts();
+    await loadCategoryPanel();
   }
 
   init();
